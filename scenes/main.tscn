@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="1_1tw5u"]
 
@@ -12,6 +12,43 @@ glow_enabled = true
 fog_enabled = true
 fog_light_color = Color(0.05, 0.05, 0.08, 1)
 fog_density = 0.02
+
+
+[sub_resource type="StandardMaterial3D" id="gun_metal"]
+albedo_color = Color(0.2, 0.2, 0.2, 1)
+metallic = 0.8
+roughness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="gun_wood"]
+albedo_color = Color(0.5, 0.3, 0.15, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="gun_dark"]
+albedo_color = Color(0.08, 0.08, 0.08, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="gun_barrel"]
+albedo_color = Color(0.1, 0.1, 0.1, 1)
+metallic = 0.9
+roughness = 0.2
+
+[sub_resource type="StandardMaterial3D" id="ceil_mat"]
+albedo_color = Color(0.08, 0.08, 0.08, 1)
+
+[sub_resource type="PlaneMesh" id="ceil_mesh"]
+size = Vector2(24, 24)
+
+[sub_resource type="BoxMesh" id="gun_body_mesh"]
+size = Vector3(0.04, 0.05, 0.3)
+
+[sub_resource type="BoxMesh" id="mag_mesh"]
+size = Vector3(0.03, 0.1, 0.02)
+
+[sub_resource type="BoxMesh" id="stock_mesh"]
+size = Vector3(0.03, 0.04, 0.15)
+
+[sub_resource type="BoxMesh" id="grip_mesh"]
+size = Vector3(0.025, 0.05, 0.02)
 
 [node name="Main" type="Node3D"]
 
@@ -389,3 +426,184 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.5, 1.25, 23.5)
 
 [node name="Wall_23_23" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23.5, 1.25, 23.5)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="BitcoinLight1" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 2, 12)
+light_color = Color(0.97, 0.58, 0.1, 1)
+light_energy = 0.8
+omni_range = 12.0
+
+[node name="BitcoinLight2" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 2, 18)
+light_color = Color(0.97, 0.58, 0.1, 1)
+light_energy = 0.5
+omni_range = 10.0
+
+[node name="Ceiling" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 2.5, 12)
+
+[node name="@CanvasLayer@4" type="CanvasLayer" parent="."]
+
+[node name="@OmniLight3D@5" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 2, 12)
+light_color = Color(0.97, 0.58, 0.1, 1)
+light_energy = 0.8
+omni_range = 12.0
+
+[node name="@OmniLight3D@6" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 2, 18)
+light_color = Color(0.97, 0.58, 0.1, 1)
+light_energy = 0.5
+omni_range = 10.0
+
+[node name="@StaticBody3D@8" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 2.5, 12)
+
+[node name="Ceiling" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -1, 0, 0, 0, -1, 12, 2.5, 12)
+mesh = SubResource("ceil_mesh")
+surface_material_override/0 = SubResource("ceil_mat")
+
+[node name="BitcoinLight1" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 2, 12)
+light_color = Color(0.97, 0.58, 0.1, 1)
+light_energy = 0.8
+omni_range = 12.0
+
+[node name="BitcoinLight2" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 2, 18)
+light_color = Color(0.97, 0.58, 0.1, 1)
+light_energy = 0.5
+omni_range = 10.0
+
+[node name="Camera3D" type="Camera3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+fov = 75.0
+
+[node name="RayCast3D" type="RayCast3D" parent="Player/Camera3D"]
+target_position = Vector3(0, 0, -100)
+
+[node name="WeaponHolder" type="Node3D" parent="Player/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, -0.12, -0.3)
+
+[node name="GunBody" type="MeshInstance3D" parent="Player/Camera3D/WeaponHolder"]
+mesh = SubResource("gun_body_mesh")
+surface_material_override/0 = SubResource("gun_metal")
+
+[node name="Magazine" type="MeshInstance3D" parent="Player/Camera3D/WeaponHolder"]
+transform = Transform3D(1, 0, 0, 0, 0.988, 0.156, 0, -0.156, 0.988, 0, -0.06, -0.05)
+mesh = SubResource("mag_mesh")
+surface_material_override/0 = SubResource("gun_wood")
+
+[node name="Stock" type="MeshInstance3D" parent="Player/Camera3D/WeaponHolder"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.005, 0.15)
+mesh = SubResource("stock_mesh")
+surface_material_override/0 = SubResource("gun_wood")
+
+[node name="Grip" type="MeshInstance3D" parent="Player/Camera3D/WeaponHolder"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.04, 0)
+mesh = SubResource("grip_mesh")
+surface_material_override/0 = SubResource("gun_dark")
+
+[node name="MuzzleFlash" type="OmniLight3D" parent="Player/Camera3D/WeaponHolder"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, -0.5)
+light_color = Color(1, 0.7, 0.2, 1)
+light_energy = 0.0
+omni_range = 5.0
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="Crosshair" type="CenterContainer" parent="HUD"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CrossH" type="ColorRect" parent="HUD/Crosshair"]
+custom_minimum_size = Vector2(20, 2)
+layout_mode = 2
+color = Color(0, 1, 0, 0.8)
+
+[node name="HealthLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 220.0
+offset_bottom = 50.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+text = "HP: 100"
+
+[node name="SatsLabel" type="Label" parent="HUD"]
+offset_left = 20.0
+offset_top = 50.0
+offset_right = 220.0
+offset_bottom = 80.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.97, 0.58, 0.1, 1)
+text = "₿ 16,000"
+
+[node name="AmmoLabel" type="Label" parent="HUD"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -50.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "30 / 90"
+
+[node name="WeaponLabel" type="Label" parent="HUD"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -80.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.97, 0.58, 0.1, 1)
+text = "AK-₿7"
+
+[node name="RoundLabel" type="Label" parent="HUD"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -120.0
+offset_top = 10.0
+offset_right = 120.0
+offset_bottom = 35.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.97, 0.58, 0.1, 1)
+text = "ROUND 1 — HODL OR DIE"
+horizontal_alignment = 1
+
+[node name="KillFeed" type="VBoxContainer" parent="HUD"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 200.0
+grow_horizontal = 0
+
+[node name="DamageOverlay" type="ColorRect" parent="HUD"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0, 0, 0)
