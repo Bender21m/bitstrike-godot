@@ -1,38 +1,74 @@
 extends Node3D
 
-# Called by enemy_spawner or main scene to set up the world
-# This adds visual polish - textured walls, floor details, lighting
-
 func _ready():
-	# Apply textures to existing walls
-	for child in get_parent().get_children():
-		if child is StaticBody3D and child.name.begins_with("Wall"):
-			for mesh_child in child.get_children():
-				if mesh_child is MeshInstance3D:
-					var mat = StandardMaterial3D.new()
-					mat.albedo_color = Color(0.55, 0.32, 0.08)
-					mat.roughness = 0.85
-					mat.metallic = 0.1
-					# Fake brick pattern via UV
-					mat.uv1_scale = Vector3(2, 2, 2)
-					mesh_child.set_surface_override_material(0, mat)
+	# Add server racks (mining rigs)
+	var rack_positions = [
+		Vector3(4, 0, 6), Vector3(4, 0, 8), Vector3(4, 0, 10),
+		Vector3(20, 0, 6), Vector3(20, 0, 8), Vector3(20, 0, 10),
+		Vector3(10, 0, 16), Vector3(12, 0, 16), Vector3(14, 0, 16),
+	]
+	for pos in rack_positions:
+		_add_server_rack(pos)
 	
-	# Add some crates for cover
+	# Crates (equipment)
 	_add_crate(Vector3(5, 0, 5), Vector3(0.8, 0.8, 0.8))
 	_add_crate(Vector3(18, 0, 18), Vector3(1.0, 0.6, 0.6))
-	_add_crate(Vector3(12, 0, 8), Vector3(0.6, 1.2, 0.6))
-	_add_crate(Vector3(8, 0, 15), Vector3(0.8, 0.8, 0.8))
-	_add_crate(Vector3(16, 0, 10), Vector3(1.0, 0.5, 0.8))
+	_add_crate(Vector3(12, 0, 3), Vector3(0.6, 0.8, 0.6))
+	_add_crate(Vector3(8, 0, 20), Vector3(0.8, 0.5, 0.8))
 	
-	# Add some barrels
-	_add_barrel(Vector3(10, 0, 5))
-	_add_barrel(Vector3(15, 0, 20))
-	_add_barrel(Vector3(4, 0, 12))
+	# Barrels (coolant?)
+	_add_barrel(Vector3(15, 0, 5))
+	_add_barrel(Vector3(3, 0, 15))
 	
-	# Add bitcoin pickup markers (glowing orange)
+	# Bitcoin pickups
 	for i in range(5):
-		var pos = Vector3(randf_range(3, 21), 0.5, randf_range(3, 21))
-		_add_bitcoin_pickup(pos)
+		_add_bitcoin_pickup(Vector3(randf_range(3, 21), 0.8, randf_range(3, 21)))
+
+func _add_server_rack(pos: Vector3):
+	var body = StaticBody3D.new()
+	body.name = "ServerRack"
+	# Main rack body
+	var mesh = MeshInstance3D.new()
+	var box = BoxMesh.new()
+	box.size = Vector3(0.6, 2.0, 0.8)
+	mesh.mesh = box
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(0.15, 0.15, 0.18)
+	mat.metallic = 0.6
+	mat.roughness = 0.4
+	mesh.set_surface_override_material(0, mat)
+	body.add_child(mesh)
+	
+	# LED lights on front (green = mining)
+	for i in range(4):
+		var led = MeshInstance3D.new()
+		var led_mesh = BoxMesh.new()
+		led_mesh.size = Vector3(0.02, 0.02, 0.001)
+		led.mesh = led_mesh
+		var led_mat = StandardMaterial3D.new()
+		led_mat.albedo_color = Color(0, 1, 0)
+		led_mat.emission_enabled = true
+		led_mat.emission = Color(0, 1, 0)
+		led_mat.emission_energy_multiplier = 2.0
+		led.set_surface_override_material(0, led_mat)
+		led.position = Vector3(-0.15 + i * 0.1, 0.3 + randf() * 0.4, -0.41)
+		body.add_child(led)
+	
+	# Small orange light (status)
+	var status_light = OmniLight3D.new()
+	status_light.light_color = Color(0, 0.8, 0)
+	status_light.light_energy = 0.15
+	status_light.omni_range = 1.5
+	status_light.position = Vector3(0, 0.5, -0.5)
+	body.add_child(status_light)
+	
+	var col = CollisionShape3D.new()
+	var shape = BoxShape3D.new()
+	shape.size = Vector3(0.6, 2.0, 0.8)
+	col.shape = shape
+	body.add_child(col)
+	body.position = pos + Vector3(0, 1.0, 0)
+	get_parent().add_child(body)
 
 func _add_crate(pos: Vector3, size: Vector3):
 	var body = StaticBody3D.new()
@@ -65,7 +101,7 @@ func _add_barrel(pos: Vector3):
 	cyl.radial_segments = 16
 	mesh.mesh = cyl
 	var mat = StandardMaterial3D.new()
-	mat.albedo_color = Color(0.3, 0.35, 0.3)
+	mat.albedo_color = Color(0.2, 0.3, 0.25)
 	mat.metallic = 0.4
 	mat.roughness = 0.6
 	mesh.set_surface_override_material(0, mat)
@@ -98,28 +134,22 @@ func _add_bitcoin_pickup(pos: Vector3):
 	mat.roughness = 0.3
 	mesh.set_surface_override_material(0, mat)
 	pickup.add_child(mesh)
-	
-	# Glow light
 	var light = OmniLight3D.new()
 	light.light_color = Color(0.97, 0.58, 0.1)
 	light.light_energy = 0.4
 	light.omni_range = 3.0
 	pickup.add_child(light)
-	
-	# Collision for pickup detection
 	var col = CollisionShape3D.new()
 	var shape = SphereShape3D.new()
 	shape.radius = 0.5
 	col.shape = shape
 	pickup.add_child(col)
-	
 	pickup.position = pos
 	pickup.set_meta("sats", randi_range(1000, 5000))
 	get_parent().add_child(pickup)
 
 func _process(delta):
-	# Rotate bitcoin pickups
 	for child in get_parent().get_children():
 		if child.name == "BitcoinPickup":
 			child.rotation.y += delta * 2
-			child.position.y = 0.5 + sin(Time.get_ticks_msec() * 0.003) * 0.1
+			child.position.y = 0.8 + sin(Time.get_ticks_msec() * 0.003) * 0.1
