@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/player.gd" id="player_script"]
 [ext_resource type="Script" path="res://scripts/enemy_spawner.gd" id="spawner_script"]
+[ext_resource type="Script" path="res://scripts/map_builder.gd" id="map_builder_script"]
 
 [sub_resource type="Environment" id="res_1"]
 background_mode = 1
@@ -1465,3 +1466,6 @@ surface_material_override/0 = SubResource("res_7")
 
 [node name="Col" type="CollisionShape3D" parent="Wall_23_23"]
 shape = SubResource("res_8")
+
+[node name="MapBuilder" type="Node3D" parent="."]
+script = ExtResource("map_builder_script")

@@ -50,6 +50,7 @@ func spawn_wave(count: int):
 		if is_instance_valid(e):
 			e.queue_free()
 	enemies.clear()
+	update_round_label()
 	
 	var types = ["banker", "shitcoiner", "bear", "roger", "adam"]
 	
@@ -236,3 +237,11 @@ func _physics_process(delta):
 			player.sats += bonus
 		# Next wave after delay
 		get_tree().create_timer(2.0).timeout.connect(func(): spawn_wave(4 + round_num * 2))
+
+func update_round_label():
+	var round_names = ["HODL OR DIE", "STACK SATS", "NO RETREAT", "BUY THE DIP",
+		"DIAMOND HANDS", "WHOLE COINER", "SATOSHI LEVEL", "CITADEL BUILDER"]
+	var rname = round_names[min(round_num - 1, round_names.size() - 1)]
+	var label = get_tree().root.find_child("RoundLabel", true, false)
+	if label:
+		label.text = "ROUND %d — %s" % [round_num, rname]
