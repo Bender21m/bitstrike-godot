@@ -1,0 +1,4 @@
+.godot/
+export/
+*.tpz
+create_scenes.gd

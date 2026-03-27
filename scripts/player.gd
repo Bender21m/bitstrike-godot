@@ -4,7 +4,7 @@ const SPEED = 5.0
 const SPRINT_SPEED = 8.0
 const MOUSE_SENSITIVITY = 0.002
 
-@onready var camera = $Camera3D
+@onready var camera = $"Camera3D"
 var health = 100
 var armor = 0
 var sats = 16000
