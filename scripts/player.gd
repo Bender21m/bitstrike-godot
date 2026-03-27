@@ -4,9 +4,8 @@ const SPEED = 5.0
 const SPRINT_SPEED = 8.0
 const MOUSE_SENSITIVITY = 0.002
 
-@onready var camera = $"Camera3D"
-@onready var raycast = $"Camera3D/RayCast3D"
-@onready var muzzle_flash = $"Camera3D/WeaponHolder/MuzzleFlash"
+@onready var camera: Camera3D = $"Camera3D"
+@onready var raycast: RayCast3D = $"Camera3D/RayCast3D"
 
 var health: int = 100
 var armor: int = 0
@@ -14,46 +13,66 @@ var sats: int = 16000
 var kills: int = 0
 var current_weapon: int = 0
 var recoil: float = 0.0
-var can_shoot: bool = true
 var last_shot_time: float = 0.0
+var mouse_captured: bool = false
 
 var weapons = [
 	{"name": "AK-B7", "ammo": 30, "max_ammo": 30, "reserve": 90,
-	 "damage": 25, "fire_rate": 0.1, "auto": true, "recoil": 0.06},
+	 "damage": 25, "fire_rate": 0.1, "recoil": 0.06},
 	{"name": "BEAGLE", "ammo": 7, "max_ammo": 7, "reserve": 35,
-	 "damage": 55, "fire_rate": 0.4, "auto": false, "recoil": 0.1},
+	 "damage": 55, "fire_rate": 0.4, "recoil": 0.1},
 	{"name": "SABOT", "ammo": 5, "max_ammo": 5, "reserve": 20,
-	 "damage": 120, "fire_rate": 0.8, "auto": false, "recoil": 0.15}
+	 "damage": 120, "fire_rate": 0.8, "recoil": 0.15}
 ]
 
 func _ready():
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	add_to_group("player")
+	# Don't capture mouse here - wait for first click
 
-func _unhandled_input(event):
+func _input(event):
+	# Capture mouse on first click
+	if event is InputEventMouseButton and event.pressed and not mouse_captured:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		mouse_captured = true
+		return
+	
+	if not mouse_captured:
+		return
+	
 	if event is InputEventMouseMotion:
 		rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
 		camera.rotate_x(-event.relative.y * MOUSE_SENSITIVITY)
 		camera.rotation.x = clamp(camera.rotation.x, -PI/2, PI/2)
 	
-	if event.is_action_pressed("shoot"):
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		shoot()
-	if event.is_action_pressed("reload"):
-		reload_weapon()
+	
 	if event is InputEventKey and event.pressed:
-		if event.keycode == KEY_1: switch_weapon(0)
-		if event.keycode == KEY_2: switch_weapon(1)
-		if event.keycode == KEY_3: switch_weapon(2)
-		if event.keycode == KEY_ESCAPE:
-			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		match event.keycode:
+			KEY_R: reload_weapon()
+			KEY_1: switch_weapon(0)
+			KEY_2: switch_weapon(1)
+			KEY_3: switch_weapon(2)
+			KEY_ESCAPE:
+				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+				mouse_captured = false
 
 func _physics_process(delta):
 	if not is_on_floor():
 		velocity.y -= 9.8 * delta
 	
-	var spd = SPRINT_SPEED if Input.is_action_pressed("sprint") else SPEED
-	var input = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	var dir = (transform.basis * Vector3(input.x, 0, input.y)).normalized()
+	var spd = SPEED
+	if Input.is_key_pressed(KEY_SHIFT):
+		spd = SPRINT_SPEED
+	
+	var input_x = 0.0
+	var input_z = 0.0
+	if Input.is_key_pressed(KEY_W): input_z -= 1
+	if Input.is_key_pressed(KEY_S): input_z += 1
+	if Input.is_key_pressed(KEY_A): input_x -= 1
+	if Input.is_key_pressed(KEY_D): input_x += 1
+	
+	var dir = (transform.basis * Vector3(input_x, 0, input_z)).normalized()
 	
 	if dir:
 		velocity.x = dir.x * spd
@@ -62,9 +81,11 @@ func _physics_process(delta):
 		velocity.x = move_toward(velocity.x, 0, spd * delta * 10)
 		velocity.z = move_toward(velocity.z, 0, spd * delta * 10)
 	
-	if recoil > 0:
+	if recoil != 0:
 		camera.rotation.x += recoil * delta
 		recoil *= 0.85
+		if abs(recoil) < 0.001:
+			recoil = 0
 	
 	move_and_slide()
 	update_hud()
@@ -80,16 +101,18 @@ func shoot():
 	recoil = -w.recoil
 	
 	# Muzzle flash
-	if muzzle_flash:
-		muzzle_flash.light_energy = 3.0
-		get_tree().create_timer(0.05).timeout.connect(func(): muzzle_flash.light_energy = 0)
+	var mf = find_child("MuzzleFlash", true, false)
+	if mf:
+		mf.light_energy = 3.0
+		get_tree().create_timer(0.05).timeout.connect(func(): 
+			if is_instance_valid(mf): mf.light_energy = 0)
 	
 	# Raycast hit
 	if raycast and raycast.is_colliding():
 		var target = raycast.get_collider()
-		if target.has_method("take_damage"):
+		if target and target.has_method("take_damage"):
 			var hit_pos = raycast.get_collision_point()
-			var is_headshot = hit_pos.y > target.global_position.y + 1.2
+			var is_headshot = hit_pos.y > target.global_position.y + 1.3
 			var damage = w.damage * (2 if is_headshot else 1)
 			target.take_damage(damage, is_headshot)
 			if is_headshot:
@@ -117,7 +140,8 @@ func take_damage(amount: int):
 	var overlay = get_tree().root.find_child("DamageOverlay", true, false)
 	if overlay:
 		overlay.color = Color(1, 0, 0, 0.3)
-		get_tree().create_timer(0.15).timeout.connect(func(): overlay.color = Color(1, 0, 0, 0))
+		get_tree().create_timer(0.15).timeout.connect(func(): 
+			if is_instance_valid(overlay): overlay.color = Color(1, 0, 0, 0))
 	if health <= 0:
 		die()
 
@@ -129,18 +153,19 @@ func add_kill_feed(text: String):
 	if feed:
 		var label = Label.new()
 		label.text = text
-		label.add_theme_font_size_override("font_size", 14)
+		label.add_theme_font_size_override("font_size", 18)
 		label.add_theme_color_override("font_color", Color(0.97, 0.58, 0.1))
 		feed.add_child(label)
-		get_tree().create_timer(5.0).timeout.connect(func(): label.queue_free())
+		get_tree().create_timer(5.0).timeout.connect(func(): 
+			if is_instance_valid(label): label.queue_free())
 
 func update_hud():
 	var w = weapons[current_weapon]
-	var hp_label = get_tree().root.find_child("HealthLabel", true, false)
-	if hp_label: hp_label.text = "HP: %d" % health
-	var sats_label = get_tree().root.find_child("SatsLabel", true, false)
-	if sats_label: sats_label.text = "₿ %s" % str(sats)
-	var ammo_label = get_tree().root.find_child("AmmoLabel", true, false)
-	if ammo_label: ammo_label.text = "%d / %d" % [w.ammo, w.reserve]
-	var weap_label = get_tree().root.find_child("WeaponLabel", true, false)
-	if weap_label: weap_label.text = w.name
+	var hp = get_tree().root.find_child("HealthLabel", true, false)
+	if hp: hp.text = "HP: %d" % health
+	var sl = get_tree().root.find_child("SatsLabel", true, false)
+	if sl: sl.text = "₿ %s" % str(sats)
+	var al = get_tree().root.find_child("AmmoLabel", true, false)
+	if al: al.text = "%d / %d" % [w.ammo, w.reserve]
+	var wl = get_tree().root.find_child("WeaponLabel", true, false)
+	if wl: wl.text = w.name
