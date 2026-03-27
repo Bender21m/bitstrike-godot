@@ -5,6 +5,7 @@ func take_damage(amount: int, is_headshot: bool = false):
 	var hp = get_meta("health", 0)
 	hp -= amount
 	set_meta("health", hp)
+	if has_node("/root/AudioManager"): $"/root/AudioManager".play("hit")
 	
 	# Flash red
 	for child in get_children():
@@ -34,6 +35,7 @@ func die():
 	tween.parallel().tween_property(self, "position:y", -0.5, 0.8)
 	tween.tween_callback(queue_free).set_delay(1.0)
 	
+	if has_node("/root/AudioManager"): $"/root/AudioManager".play("kill")
 	# Disable collision
 	for child in get_children():
 		if child is CollisionShape3D:

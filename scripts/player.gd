@@ -99,6 +99,7 @@ func shoot():
 	last_shot_time = now
 	w.ammo -= 1
 	recoil = -w.recoil
+	if has_node("/root/AudioManager"): $"/root/AudioManager".play("shoot")
 	
 	# Muzzle flash
 	var mf = find_child("MuzzleFlash", true, false)

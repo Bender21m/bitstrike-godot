@@ -228,6 +228,7 @@ func _physics_process(delta):
 				enemy.set_meta("last_attack", now)
 				if player.has_method("take_damage"):
 					player.take_damage(dmg)
+				if has_node("/root/AudioManager"): $"/root/AudioManager".play("hurt")
 	
 	# Check round completion
 	if alive_count == 0 and enemies.size() > 0:
