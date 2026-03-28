@@ -128,7 +128,7 @@ fov = 75.0
 target_position = Vector3(0, 0, -100)
 
 [node name="WeaponHolder" type="Node3D" parent="Player/Camera3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, -0.12, -0.3)
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, 0.18, -0.15, -0.35)
 
 [node name="GunBody" type="MeshInstance3D" parent="Player/Camera3D/WeaponHolder"]
 mesh = SubResource("res_10")

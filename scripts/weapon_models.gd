@@ -29,8 +29,8 @@ func build_weapon(weapon_name: String) -> Node3D:
 		_:
 			current_model = _build_ak_b7()
 	
-	# Add first-person arms to every weapon
-	_add_fps_arms(current_model)
+	# Arms removed — procedural box arms looked bad
+	# Will add proper model arms when we have real FPS assets
 	
 	add_child(current_model)
 	anim_state = "draw"
