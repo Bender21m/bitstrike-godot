@@ -7,5 +7,11 @@
 - **License:** CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
 - **Textures:** Resized to 1024x1024 from original 4096x4096
 
+## FPS Arms & Weapon System
+- **Source:** "Godot 4 FPS Arms" by GDQuest
+- **URL:** https://github.com/gdquest-demos/godot-4-FPS-arms
+- **License:** MIT
+- **Assets used:** fps_arms.glb, small_laser_pistol.glb, impact textures, sounds
+
 ## Game Engine
 - Godot Engine 4.3 — https://godotengine.org (MIT License)

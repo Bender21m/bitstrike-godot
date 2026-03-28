@@ -125,22 +125,34 @@ func _ready():
 	_setup_weapon_model()
 
 func _setup_weapon_model():
-	# Always use procedural weapon models (reliable, no import issues)
-	# GLB models need Godot editor import — raw GLTF won't work in web export
+	var holder = find_child("WeaponHolder", true, false)
+	if not holder:
+		holder = camera
+	
+	# Hide old static gun meshes from the scene
+	for child in holder.get_children():
+		if child is MeshInstance3D:
+			child.visible = false
+	
+	# Try loading GLB FPS arms model (requires editor import step in CI)
+	var arms_path = "res://assets/fps_arms/fps_arms.glb"
+	if ResourceLoader.exists(arms_path):
+		var arms_scene = load(arms_path)
+		if arms_scene and arms_scene is PackedScene:
+			var arms_instance = arms_scene.instantiate()
+			arms_instance.name = "FPSArmsModel"
+			arms_instance.scale = Vector3(1, 1, 1)
+			holder.add_child(arms_instance)
+			print("[BitStrike] GLB FPS arms loaded successfully!")
+			# Still use procedural for weapon switching, but arms are real
+	
+	# Always set up procedural weapon builder (for weapon geometry)
 	var weapon_script = load("res://scripts/weapon_models.gd")
 	if weapon_script:
 		weapon_model_builder = Node3D.new()
 		weapon_model_builder.set_script(weapon_script)
 		weapon_model_builder.name = "WeaponModels"
-		var holder = find_child("WeaponHolder", true, false)
-		if holder:
-			# Hide the old static gun meshes from the scene
-			for child in holder.get_children():
-				if child is MeshInstance3D:
-					child.visible = false
-			holder.add_child(weapon_model_builder)
-		else:
-			camera.add_child(weapon_model_builder)
+		holder.add_child(weapon_model_builder)
 		_update_weapon_model()
 
 # Animation functions removed — handled by weapon_models.gd

@@ -24,17 +24,23 @@ jobs:
 
       - name: Setup export templates
         run: |
-          # barichello/godot-ci stores templates in /root/ but GitHub Actions
-          # runs as a different user, so HOME=/github/home
           mkdir -p $HOME/.local/share/godot/export_templates/4.3.stable
-          # Copy from wherever they exist in the image
           cp -r /root/.local/share/godot/export_templates/4.3.stable/* \
             $HOME/.local/share/godot/export_templates/4.3.stable/ 2>/dev/null || true
-          # Also try the mono path
           cp -r /root/.local/share/godot/export_templates/4.3.stable.mono/* \
             $HOME/.local/share/godot/export_templates/4.3.stable/ 2>/dev/null || true
-          echo "Templates at $HOME/.local/share/godot/export_templates/4.3.stable/:"
-          ls $HOME/.local/share/godot/export_templates/4.3.stable/ 2>/dev/null || echo "No templates found"
+
+      - name: Import assets with Godot editor
+        run: |
+          # Run editor headless to trigger asset imports (.glb -> .scn, .png -> .ctex, etc)
+          # This is the critical step that makes 3D models work in export
+          mkdir -p .godot/imported
+          godot --headless --editor --quit 2>&1 || true
+          # Run it twice to ensure all imports complete
+          godot --headless --editor --quit 2>&1 || true
+          echo "Import cache:"
+          ls .godot/imported/ 2>/dev/null | wc -l
+          echo "files imported"
 
       - name: Export for Web
         run: |
