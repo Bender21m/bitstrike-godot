@@ -335,6 +335,30 @@ func create_enemy(type: String, pos: Vector3) -> CharacterBody3D:
 	enemy.set_script(ai_script)
 	enemy.add_to_group("enemies")
 	
+	# --- NAME TAG above head ---
+	var name_tag_pos = Vector3(0, 2.3, 0)
+	# Create a simple colored indicator for enemy type
+	var type_indicator = MeshInstance3D.new()
+	type_indicator.name = "TypeIndicator"
+	var ind_mesh = BoxMesh.new()
+	ind_mesh.size = Vector3(0.3, 0.06, 0.02)
+	type_indicator.mesh = ind_mesh
+	var ind_mat = StandardMaterial3D.new()
+	match type:
+		"banker": ind_mat.albedo_color = Color(0.5, 0.5, 0.5)
+		"shitcoiner": ind_mat.albedo_color = Color(0.6, 0.2, 0.8)
+		"bear": ind_mat.albedo_color = Color(0.8, 0.3, 0.2)
+		"roger": ind_mat.albedo_color = Color(0.2, 0.7, 0.2)
+		"whale": ind_mat.albedo_color = Color(0.2, 0.5, 0.9)
+		"fed": ind_mat.albedo_color = Color(0.9, 0.1, 0.1)
+		_: ind_mat.albedo_color = Color(1, 1, 1)
+	ind_mat.emission_enabled = true
+	ind_mat.emission = ind_mat.albedo_color
+	ind_mat.emission_energy_multiplier = 1.0
+	type_indicator.set_surface_override_material(0, ind_mat)
+	type_indicator.position = name_tag_pos
+	enemy.add_child(type_indicator)
+	
 	# Call setup after adding to tree (deferred)
 	enemy.call_deferred("setup", type, data)
 	
