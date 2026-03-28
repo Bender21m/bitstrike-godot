@@ -134,10 +134,16 @@ func _setup_weapon_model():
 		if child is MeshInstance3D:
 			child.visible = false
 	
-	# GLB arms available but need proper scene setup (AnimationTree etc)
-	# For now using procedural weapons — will integrate GLB arms properly later
+	# Try loading GLB FPS arms via scene wrapper
+	var arms_scene_path = "res://scenes/fps_arms_view.tscn"
+	if ResourceLoader.exists(arms_scene_path):
+		var arms_scene = load(arms_scene_path)
+		if arms_scene and arms_scene is PackedScene:
+			var arms_inst = arms_scene.instantiate()
+			arms_inst.name = "FPSArmsView"
+			holder.add_child(arms_inst)
 	
-	# Set up procedural weapon builder
+	# Set up procedural weapon builder (runs alongside GLB arms)
 	var weapon_script = load("res://scripts/weapon_models.gd")
 	if weapon_script:
 		weapon_model_builder = Node3D.new()
