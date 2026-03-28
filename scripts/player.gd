@@ -487,7 +487,19 @@ func take_damage(amount: int):
 		die()
 
 func die():
-	print("REKT - ", sats, " sats lost")
+	# Show death screen
+	var death_screen = get_tree().root.find_child("DeathScreen", true, false)
+	if death_screen and death_screen.has_method("show_death"):
+		var round_num = 1
+		var spawner = get_tree().root.find_child("EnemySpawner", true, false)
+		if spawner:
+			round_num = spawner.round_num
+		var sats_lost = death_screen.show_death(kills, sats, round_num)
+		if sats_lost:
+			sats -= sats_lost
+	else:
+		# Fallback: just reload
+		get_tree().reload_current_scene()
 
 func add_kill_feed(text: String):
 	var feed = get_tree().root.find_child("KillFeed", true, false)

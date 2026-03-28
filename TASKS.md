@@ -1,12 +1,10 @@
 # BitStrike Task Pipeline
 
 ## 🔨 Current Task
-Wire AK-74M model into player (replace procedural weapon) + find more models
+Polish pass — testing, bug fixes, balance
 
 ## 📋 Queue
-1. Add first-person arms holding gun with idle animations, reload animations, shooting animations
-2. Larger, more intricate maps — hiding spots, elevation changes, tunnels, more space between player and enemy spawns, add textures
-3. CS-style recoil patterns + crouching for more accurate aim
+_(working through overnight)_
 
 ## ✅ Completed
 - Buy menu (CS-style, between rounds)
@@ -16,3 +14,11 @@ Wire AK-74M model into player (replace procedural weapon) + find more models
 - Character system + Satoshi boss encounter
 - GitHub Actions CI/CD for web export
 - Downloaded realistic AK-74M FPS model with arms + animations (CC-BY-4.0)
+- CS-style recoil patterns per weapon
+- Crouching (C/Ctrl) for reduced spread + recoil
+- Weapon bob + sway
+- Reload system with per-weapon timers + animations
+- Dynamic crosshair that expands with spread
+- Bigger map: catwalks, tunnels, cover, rooms, elevation
+- Death/respawn screen ("REKT" + stats + timer)
+- WebGL context loss recovery (blank screen fix)
