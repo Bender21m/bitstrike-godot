@@ -5,7 +5,8 @@ extends Node
 
 var popup_canvas: CanvasLayer
 var last_popup_time: float = 0.0
-var popup_cooldown: float = 0.3  # Max one popup per 0.3s
+var popup_cooldown: float = 1.0  # Max one popup per second
+var max_visible: int = 2  # Max 2 popups on screen at once
 
 func _ready():
 	popup_canvas = CanvasLayer.new()
@@ -18,6 +19,12 @@ func show_sats(amount: int, reason: String = ""):
 	if now - last_popup_time < popup_cooldown:
 		return
 	last_popup_time = now
+	
+	# Limit visible popups
+	if popup_canvas.get_child_count() >= max_visible:
+		var oldest = popup_canvas.get_child(0)
+		if is_instance_valid(oldest):
+			oldest.queue_free()
 	
 	var label = Label.new()
 	var text = "+₿%s" % _format_sats(amount)

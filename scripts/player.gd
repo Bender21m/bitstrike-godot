@@ -134,19 +134,10 @@ func _setup_weapon_model():
 		if child is MeshInstance3D:
 			child.visible = false
 	
-	# Try loading GLB FPS arms model (requires editor import step in CI)
-	var arms_path = "res://assets/fps_arms/fps_arms.glb"
-	if ResourceLoader.exists(arms_path):
-		var arms_scene = load(arms_path)
-		if arms_scene and arms_scene is PackedScene:
-			var arms_instance = arms_scene.instantiate()
-			arms_instance.name = "FPSArmsModel"
-			arms_instance.scale = Vector3(1, 1, 1)
-			holder.add_child(arms_instance)
-			print("[BitStrike] GLB FPS arms loaded successfully!")
-			# Still use procedural for weapon switching, but arms are real
+	# GLB arms available but need proper scene setup (AnimationTree etc)
+	# For now using procedural weapons — will integrate GLB arms properly later
 	
-	# Always set up procedural weapon builder (for weapon geometry)
+	# Set up procedural weapon builder
 	var weapon_script = load("res://scripts/weapon_models.gd")
 	if weapon_script:
 		weapon_model_builder = Node3D.new()
