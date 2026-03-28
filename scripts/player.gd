@@ -591,6 +591,9 @@ func take_damage(amount: int):
 		die()
 
 func die():
+	# Track death
+	if has_node("/root/Scoreboard"):
+		$"/root/Scoreboard".register_death()
 	# Show death screen
 	var death_screen = get_tree().root.find_child("DeathScreen", true, false)
 	if death_screen and death_screen.has_method("show_death"):

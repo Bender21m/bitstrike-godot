@@ -585,6 +585,10 @@ func _start_death():
 	if has_node("/root/KillStreaks"):
 		$"/root/KillStreaks".register_kill()
 	
+	# Register scoreboard stats
+	if has_node("/root/Scoreboard"):
+		$"/root/Scoreboard".register_kill(false)
+	
 	# Disable collision
 	for child in get_children():
 		if child is CollisionShape3D:
