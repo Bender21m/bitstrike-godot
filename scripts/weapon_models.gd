@@ -5,9 +5,15 @@ extends Node3D
 
 var current_model: Node3D = null
 
+var arm_nodes: Array = []
+var anim_time: float = 0.0
+var anim_state: String = "idle"  # idle, shoot, reload, draw
+var anim_timer: float = 0.0
+
 func build_weapon(weapon_name: String) -> Node3D:
 	if current_model:
 		current_model.queue_free()
+	arm_nodes.clear()
 	
 	match weapon_name:
 		"AK-B7":
@@ -18,11 +24,115 @@ func build_weapon(weapon_name: String) -> Node3D:
 			current_model = _build_sabot()
 		"M4-SAT":
 			current_model = _build_m4_sat()
+		"KNIFE":
+			current_model = _build_knife_model()
 		_:
 			current_model = _build_ak_b7()
 	
+	# Add first-person arms to every weapon
+	_add_fps_arms(current_model)
+	
 	add_child(current_model)
+	anim_state = "draw"
+	anim_timer = 0.3
 	return current_model
+
+func play_anim(anim_name: String):
+	anim_state = anim_name
+	match anim_name:
+		"shoot": anim_timer = 0.12
+		"reload": anim_timer = 2.0
+		"draw": anim_timer = 0.3
+		_: anim_timer = 0.0
+
+func _process(delta):
+	if not current_model:
+		return
+	anim_time += delta
+	
+	# Animate based on state
+	match anim_state:
+		"idle":
+			_animate_idle(delta)
+		"shoot":
+			_animate_shoot(delta)
+			anim_timer -= delta
+			if anim_timer <= 0:
+				anim_state = "idle"
+		"reload":
+			_animate_reload(delta)
+			anim_timer -= delta
+			if anim_timer <= 0:
+				anim_state = "idle"
+		"draw":
+			_animate_draw(delta)
+			anim_timer -= delta
+			if anim_timer <= 0:
+				anim_state = "idle"
+
+func _animate_idle(delta):
+	if not current_model:
+		return
+	# Subtle breathing sway
+	var breath = sin(anim_time * 1.5) * 0.002
+	var sway = sin(anim_time * 0.8) * 0.001
+	current_model.position.y = lerp(current_model.position.y, breath, delta * 5)
+	current_model.position.x = lerp(current_model.position.x, sway, delta * 5)
+	current_model.rotation.z = lerp(current_model.rotation.z, sin(anim_time * 1.2) * 0.005, delta * 5)
+	
+	# Arms subtle movement
+	for arm in arm_nodes:
+		if is_instance_valid(arm):
+			arm.rotation.x = lerp(arm.rotation.x, sin(anim_time * 1.5) * 0.01, delta * 5)
+
+func _animate_shoot(delta):
+	if not current_model:
+		return
+	# Recoil kick back + up
+	var kick = anim_timer / 0.12  # 1.0 at start, 0.0 at end
+	current_model.position.z += kick * 0.02 * delta * 60
+	current_model.rotation.x -= kick * 0.03 * delta * 60
+	# Arms tense
+	for arm in arm_nodes:
+		if is_instance_valid(arm):
+			arm.rotation.x = -kick * 0.05
+
+func _animate_reload(delta):
+	if not current_model:
+		return
+	var t = 1.0 - (anim_timer / 2.0)  # 0→1 over reload
+	
+	if t < 0.3:
+		# Tilt gun to side (looking at mag)
+		current_model.rotation.z = lerp(current_model.rotation.z, 0.15, delta * 8)
+		current_model.position.y = lerp(current_model.position.y, -0.02, delta * 8)
+	elif t < 0.5:
+		# Pull mag out (gun drops slightly)
+		current_model.position.y = lerp(current_model.position.y, -0.04, delta * 10)
+		# Left arm reaches down
+		if arm_nodes.size() > 0 and is_instance_valid(arm_nodes[0]):
+			arm_nodes[0].rotation.x = lerp(arm_nodes[0].rotation.x, -0.3, delta * 8)
+	elif t < 0.7:
+		# Insert new mag
+		current_model.position.y = lerp(current_model.position.y, -0.02, delta * 8)
+		if arm_nodes.size() > 0 and is_instance_valid(arm_nodes[0]):
+			arm_nodes[0].rotation.x = lerp(arm_nodes[0].rotation.x, 0.1, delta * 10)
+	else:
+		# Return to position, rack bolt
+		current_model.rotation.z = lerp(current_model.rotation.z, 0.0, delta * 6)
+		current_model.position.y = lerp(current_model.position.y, 0.0, delta * 6)
+		# Right arm pulls bolt
+		if arm_nodes.size() > 1 and is_instance_valid(arm_nodes[1]):
+			var bolt_pull = sin((t - 0.7) / 0.3 * PI)
+			arm_nodes[1].position.z = bolt_pull * 0.02
+
+func _animate_draw(delta):
+	if not current_model:
+		return
+	# Weapon rises from below
+	var t = 1.0 - (anim_timer / 0.3)
+	current_model.position.y = lerp(-0.15, 0.0, t)
+	current_model.rotation.x = lerp(0.2, 0.0, t)
 
 # ============================================================
 # AK-B7 — Based on AK-47 silhouette
@@ -372,6 +482,95 @@ func _build_m4_sat() -> Node3D:
 	gun.position = Vector3(0.15, -0.12, -0.3)
 	
 	return gun
+
+# ============================================================
+# HELPER FUNCTIONS
+# ============================================================
+# ============================================================
+# KNIFE MODEL
+# ============================================================
+func _build_knife_model() -> Node3D:
+	var knife = Node3D.new()
+	knife.name = "Knife_Model"
+	
+	var blade_color = Color(0.6, 0.6, 0.65)
+	var handle_color = Color(0.15, 0.15, 0.15)
+	var orange_btc = Color(0.97, 0.58, 0.1)
+	
+	# Blade
+	_add_box(knife, Vector3(0, 0, -0.15), Vector3(0.01, 0.03, 0.15), blade_color, 0.9, 0.15)
+	# Blade edge (slightly wider)
+	_add_box(knife, Vector3(0, -0.005, -0.15), Vector3(0.015, 0.005, 0.14), blade_color, 0.9, 0.1)
+	# Blade tip
+	_add_box(knife, Vector3(0, 0, -0.23), Vector3(0.008, 0.02, 0.02), blade_color, 0.9, 0.15)
+	
+	# Guard
+	_add_box(knife, Vector3(0, 0, -0.07), Vector3(0.025, 0.01, 0.01), Color(0.2, 0.2, 0.2), 0.7, 0.3)
+	
+	# Handle
+	_add_box(knife, Vector3(0, 0, 0.0), Vector3(0.018, 0.025, 0.1), handle_color, 0.0, 0.9)
+	# Handle grip texture
+	for i in range(3):
+		_add_box(knife, Vector3(0.01, 0, -0.02 + i * 0.03), Vector3(0.001, 0.02, 0.015), Color(0.1, 0.1, 0.1), 0.0, 0.95)
+	
+	# Bitcoin logo on blade
+	_add_box(knife, Vector3(0.006, 0.005, -0.16), Vector3(0.001, 0.012, 0.012), orange_btc, 0.3, 0.6)
+	
+	knife.position = Vector3(0.2, -0.15, -0.2)
+	return knife
+
+# ============================================================
+# FIRST PERSON ARMS
+# ============================================================
+func _add_fps_arms(gun: Node3D):
+	var skin_color = Color(0.72, 0.55, 0.4)
+	var sleeve_color = Color(0.15, 0.2, 0.15)  # Dark green tactical
+	
+	# === LEFT ARM (front grip / support hand) ===
+	var left_arm = Node3D.new()
+	left_arm.name = "LeftArm"
+	
+	# Sleeve (upper arm, comes from left side of screen)
+	_add_box(left_arm, Vector3(-0.12, -0.08, -0.1), Vector3(0.06, 0.06, 0.18), sleeve_color, 0.0, 0.85)
+	# Forearm
+	_add_box(left_arm, Vector3(-0.05, -0.06, -0.18), Vector3(0.055, 0.055, 0.14), sleeve_color, 0.0, 0.85)
+	# Wrist (skin)
+	_add_box(left_arm, Vector3(-0.02, -0.05, -0.22), Vector3(0.045, 0.04, 0.04), skin_color, 0.0, 0.7)
+	# Hand (gripping handguard area)
+	_add_box(left_arm, Vector3(0.0, -0.04, -0.24), Vector3(0.04, 0.05, 0.06), skin_color, 0.0, 0.7)
+	# Fingers wrapped around
+	for i in range(4):
+		_add_box(left_arm, Vector3(0.0, -0.06 - i * 0.005, -0.22 - i * 0.01), 
+			Vector3(0.035, 0.012, 0.015), skin_color, 0.0, 0.7)
+	# Thumb on top
+	_add_box(left_arm, Vector3(0.015, -0.025, -0.23), Vector3(0.012, 0.015, 0.03), skin_color, 0.0, 0.7)
+	
+	gun.add_child(left_arm)
+	arm_nodes.append(left_arm)
+	
+	# === RIGHT ARM (trigger hand) ===
+	var right_arm = Node3D.new()
+	right_arm.name = "RightArm"
+	
+	# Sleeve (upper, comes from right-bottom)
+	_add_box(right_arm, Vector3(0.1, -0.1, 0.06), Vector3(0.06, 0.06, 0.16), sleeve_color, 0.0, 0.85)
+	# Forearm
+	_add_box(right_arm, Vector3(0.05, -0.08, 0.0), Vector3(0.055, 0.055, 0.12), sleeve_color, 0.0, 0.85)
+	# Wrist
+	_add_box(right_arm, Vector3(0.02, -0.06, -0.04), Vector3(0.045, 0.04, 0.04), skin_color, 0.0, 0.7)
+	# Hand (gripping pistol grip)
+	_add_box(right_arm, Vector3(0.0, -0.05, -0.02), Vector3(0.04, 0.05, 0.05), skin_color, 0.0, 0.7)
+	# Fingers on grip
+	for i in range(4):
+		_add_box(right_arm, Vector3(0.0, -0.07 - i * 0.005, 0.0 + i * 0.008), 
+			Vector3(0.035, 0.012, 0.015), skin_color, 0.0, 0.7)
+	# Trigger finger
+	_add_box(right_arm, Vector3(0.0, -0.05, -0.04), Vector3(0.01, 0.012, 0.025), skin_color, 0.0, 0.7)
+	# Thumb
+	_add_box(right_arm, Vector3(0.015, -0.035, -0.01), Vector3(0.012, 0.015, 0.03), skin_color, 0.0, 0.7)
+	
+	gun.add_child(right_arm)
+	arm_nodes.append(right_arm)
 
 # ============================================================
 # HELPER FUNCTIONS

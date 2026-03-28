@@ -39,9 +39,7 @@ var weapon_sway_y: float = 0.0
 
 # === WEAPON MODEL ===
 var weapon_model_builder: Node3D
-var fps_model: Node3D  # GLB model instance
-var fps_anim_player: AnimationPlayer
-var current_anim: String = ""
+# Animation handled by weapon_models.gd
 
 # === MOVEMENT ACCURACY MODIFIERS (CS 1.6 style) ===
 # Standing still = base accuracy
@@ -145,24 +143,7 @@ func _setup_weapon_model():
 			camera.add_child(weapon_model_builder)
 		_update_weapon_model()
 
-func _find_anim_player(node: Node) -> AnimationPlayer:
-	if node is AnimationPlayer:
-		return node
-	for child in node.get_children():
-		var result = _find_anim_player(child)
-		if result:
-			return result
-	return null
-
-func _play_anim(anim_name: String, speed: float = 1.0):
-	if not fps_anim_player:
-		return
-	if not fps_anim_player.has_animation(anim_name):
-		return
-	if current_anim == anim_name and fps_anim_player.is_playing():
-		return
-	current_anim = anim_name
-	fps_anim_player.play(anim_name, -1, speed)
+# Animation functions removed — handled by weapon_models.gd
 
 func _input(event):
 	# Capture mouse on first click
@@ -370,18 +351,8 @@ func _update_weapon_bob(delta: float, is_moving: bool):
 	holder.position.y += clamp(weapon_sway_y, -0.015, 0.015)
 
 func _update_fps_animation(is_moving: bool):
-	if not fps_anim_player:
-		return
-	if is_reloading:
-		return  # Don't interrupt reload
-	
-	if is_moving:
-		if is_sprinting:
-			_play_anim("Rig|AK_Run")
-		else:
-			_play_anim("Rig|AK_Walk")
-	else:
-		_play_anim("Rig|AK_Idle")
+	# Handled by weapon_models.gd animation system now
+	pass
 
 func toggle_crouch():
 	is_crouching = not is_crouching
@@ -469,9 +440,8 @@ func shoot():
 			if is_instance_valid(mf): mf.light_energy = 0)
 	
 	# Play shot animation
-	if fps_anim_player and fps_anim_player.has_animation("Rig|AK_Shot"):
-		fps_anim_player.play("Rig|AK_Shot", -1, 2.0)
-		current_anim = "Rig|AK_Shot"
+	if weapon_model_builder and weapon_model_builder.has_method("play_anim"):
+		weapon_model_builder.play_anim("shoot")
 	
 	# === RAYCAST HIT (with spread) ===
 	if raycast:
@@ -522,10 +492,8 @@ func reload_weapon():
 	reload_timer = w.get("reload_time", 2.0)
 	
 	# Play reload animation
-	if fps_anim_player:
-		if fps_anim_player.has_animation("Rig|AK_Reload"):
-			fps_anim_player.play("Rig|AK_Reload")
-			current_anim = "Rig|AK_Reload"
+	if weapon_model_builder and weapon_model_builder.has_method("play_anim"):
+		weapon_model_builder.play_anim("reload")
 	
 	# Sound
 	if has_node("/root/AudioManager"):
