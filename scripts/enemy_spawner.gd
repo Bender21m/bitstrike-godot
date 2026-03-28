@@ -422,3 +422,7 @@ func update_round_label():
 	var label = get_tree().root.find_child("RoundLabel", true, false)
 	if label:
 		label.text = "ROUND %d — %s" % [round_num, rname]
+	
+	# Big center announcement
+	if has_node("/root/RoundAnnouncer"):
+		$"/root/RoundAnnouncer".announce_round(round_num, rname)

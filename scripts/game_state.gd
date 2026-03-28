@@ -27,6 +27,9 @@ func start_buy_phase():
 	var buy_menu = get_tree().root.find_child("BuyMenu", true, false)
 	if buy_menu and buy_menu.has_method("open_menu"):
 		buy_menu.open_menu()
+	# Announce buy phase
+	if has_node("/root/RoundAnnouncer"):
+		$"/root/RoundAnnouncer".announce_buy_phase(int(BUY_PHASE_DURATION))
 
 func end_buy_phase():
 	buy_phase = false
