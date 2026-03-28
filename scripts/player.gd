@@ -107,9 +107,17 @@ func _setup_weapon_model():
 		if scene and scene is PackedScene:
 			fps_model = scene.instantiate()
 			fps_model.name = "FPSModel"
-			# Scale and position for first-person view
-			fps_model.scale = Vector3(0.15, 0.15, 0.15)
-			fps_model.position = Vector3(0.12, -0.18, -0.25)
+			# CS 1.6 style viewmodel positioning:
+			# Model from Sketchfab has internal 100x scale (Blender cm → m)
+			# and -90° X rotation. We scale down and position to lower-right.
+			# Tweak these values to get the classic CS 1.6 look:
+			#   - Arms enter from bottom-right
+			#   - Barrel points roughly at crosshair
+			#   - Gun fills lower-right quadrant
+			fps_model.scale = Vector3(0.007, 0.007, 0.007)
+			fps_model.position = Vector3(0.22, -0.35, -0.3)
+			# Rotate to face forward: model faces +Y in Blender,
+			# Godot camera looks -Z, so rotate 180° on Y
 			fps_model.rotation_degrees = Vector3(0, 180, 0)
 			
 			var holder = find_child("WeaponHolder", true, false)
