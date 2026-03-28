@@ -534,6 +534,14 @@ func shoot():
 						$"/root/AudioManager".play("hit")
 					_flash_crosshair(Color(1, 1, 1))
 		
+		# Bullet impact on wall/floor if no enemy hit
+		if raycast.is_colliding():
+			var hit_point = raycast.get_collision_point()
+			var hit_normal = raycast.get_collision_normal()
+			var hit_obj = raycast.get_collider()
+			if hit_obj and not hit_obj.has_method("take_damage"):
+				_spawn_bullet_impact(hit_point, hit_normal)
+		
 		# Reset raycast
 		raycast.target_position = Vector3(0, 0, -100)
 
@@ -754,6 +762,52 @@ func update_hud():
 	
 	# Crosshair spread indicator
 	_update_crosshair()
+
+func _spawn_bullet_impact(pos: Vector3, normal: Vector3):
+	# Bullet hole decal (dark circle)
+	var decal = MeshInstance3D.new()
+	var quad = QuadMesh.new()
+	quad.size = Vector2(0.08, 0.08)
+	decal.mesh = quad
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(0.05, 0.05, 0.05, 0.8)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.no_depth_test = false
+	decal.set_surface_override_material(0, mat)
+	decal.global_position = pos + normal * 0.005
+	# Align to surface normal
+	if normal != Vector3.UP and normal != Vector3.DOWN:
+		decal.look_at(pos + normal)
+	elif normal == Vector3.DOWN:
+		decal.rotation.x = PI / 2
+	get_tree().root.add_child(decal)
+	
+	# Spark particles
+	for i in range(3):
+		var spark = MeshInstance3D.new()
+		var sm = SphereMesh.new()
+		sm.radius = 0.015
+		sm.height = 0.03
+		spark.mesh = sm
+		var smat = StandardMaterial3D.new()
+		smat.albedo_color = Color(1, 0.8, 0.3)
+		smat.emission_enabled = true
+		smat.emission = Color(1, 0.7, 0.2)
+		smat.emission_energy_multiplier = 2.0
+		spark.set_surface_override_material(0, smat)
+		spark.global_position = pos
+		get_tree().root.add_child(spark)
+		
+		var dir = (normal + Vector3(randf_range(-0.5, 0.5), randf_range(0, 0.5), randf_range(-0.5, 0.5))).normalized()
+		var tween = get_tree().create_tween()
+		tween.tween_property(spark, "global_position", pos + dir * randf_range(0.2, 0.5), 0.2)
+		tween.parallel().tween_property(spark, "scale", Vector3.ZERO, 0.2)
+		tween.tween_callback(spark.queue_free)
+	
+	# Auto-remove decal after 10s
+	get_tree().create_timer(10.0).timeout.connect(func():
+		if is_instance_valid(decal): decal.queue_free()
+	)
 
 func _flash_crosshair(color: Color):
 	var ch = get_tree().root.find_child("CrosshairH", true, false)
