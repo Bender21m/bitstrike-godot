@@ -39,6 +39,11 @@ func _input(event):
 	if not mouse_captured:
 		return
 	
+	# Block mouse input while buy menu is open
+	var buy_menu = get_tree().root.find_child("BuyMenu", true, false)
+	if buy_menu and buy_menu.is_open:
+		return
+	
 	if event is InputEventMouseMotion:
 		rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
 		camera.rotate_x(-event.relative.y * MOUSE_SENSITIVITY)
@@ -49,11 +54,21 @@ func _input(event):
 	
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
+			KEY_B:
+				var buy_menu = get_tree().root.find_child("BuyMenu", true, false)
+				if buy_menu and buy_menu.has_method("toggle_menu"):
+					buy_menu.toggle_menu()
+				return
 			KEY_R: reload_weapon()
 			KEY_1: switch_weapon(0)
 			KEY_2: switch_weapon(1)
 			KEY_3: switch_weapon(2)
 			KEY_ESCAPE:
+				# Close buy menu first if open
+				var bm = get_tree().root.find_child("BuyMenu", true, false)
+				if bm and bm.is_open:
+					bm.close_menu()
+					return
 				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 				mouse_captured = false
 
