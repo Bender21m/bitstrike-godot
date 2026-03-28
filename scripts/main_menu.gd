@@ -196,4 +196,9 @@ func _start_game(map_index: int):
 				# Re-run _ready to build the map
 				map_builder._ready()
 	
+	# Start the game — tell spawner to begin
+	var spawner = get_tree().root.find_child("EnemySpawner", true, false)
+	if spawner and spawner.has_method("start_game"):
+		spawner.start_game()
+	
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)

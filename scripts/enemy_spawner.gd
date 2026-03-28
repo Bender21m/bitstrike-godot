@@ -70,9 +70,18 @@ var satoshi_spawned_this_round: bool = false
 var freeze_time: float = 5.0  # Seconds before enemies start (look around, get ready)
 var round_started: bool = false
 
+var game_started: bool = false
+
 func _ready():
 	player = get_tree().get_first_node_in_group("player")
-	# Don't spawn immediately — show objective, give player time
+	# Wait for main menu to close before starting
+	# Check every frame if menu is gone
+	set_process(true)
+
+func start_game():
+	if game_started:
+		return
+	game_started = true
 	_start_round_intro()
 
 var carrier_spawned: bool = false

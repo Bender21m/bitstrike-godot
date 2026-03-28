@@ -447,5 +447,17 @@ func _pack_wav(data: PackedByteArray) -> AudioStreamWAV:
 	return stream
 
 func play(sound_name: String):
-	if audio_players.has(sound_name):
-		audio_players[sound_name].play()
+	if not audio_players.has(sound_name):
+		return
+	var base = audio_players[sound_name]
+	# If already playing, create a temporary player for polyphony
+	if base.playing:
+		var temp = AudioStreamPlayer.new()
+		temp.stream = base.stream
+		temp.volume_db = base.volume_db
+		temp.bus = "Master"
+		add_child(temp)
+		temp.play()
+		temp.finished.connect(temp.queue_free)
+	else:
+		base.play()

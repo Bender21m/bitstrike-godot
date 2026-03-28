@@ -16,7 +16,7 @@ var health: int = 100
 var armor: int = 0
 var sats: int = 16000
 var kills: int = 0
-var current_weapon: int = 0
+var current_weapon: int = 1  # Start with AK-B7 (0=knife)
 var recoil_vertical: float = 0.0
 var recoil_horizontal: float = 0.0
 var recoil_recovery: float = 0.0
