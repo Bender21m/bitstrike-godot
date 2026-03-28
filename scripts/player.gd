@@ -28,6 +28,8 @@ var is_reloading: bool = false
 var reload_timer: float = 0.0
 var shots_fired: int = 0  # For recoil pattern
 var mouse_held: bool = false  # For full-auto fire
+var footstep_timer: float = 0.0
+var footstep_interval: float = 0.45
 
 # === WEAPON BOB ===
 var bob_time: float = 0.0
@@ -321,6 +323,19 @@ func _physics_process(delta):
 	
 	# === FPS ANIMATION STATE ===
 	_update_fps_animation(is_moving)
+	
+	# Footstep sounds
+	if is_moving and is_on_floor():
+		var step_speed = 0.45
+		if is_sprinting: step_speed = 0.3
+		elif is_crouching: step_speed = 0.65
+		footstep_timer -= delta
+		if footstep_timer <= 0:
+			footstep_timer = step_speed
+			if has_node("/root/AudioManager"):
+				$"/root/AudioManager".play("footstep")
+	else:
+		footstep_timer = 0.0
 	
 	# Full-auto fire when holding mouse (only for auto weapons like AK, M4)
 	var current_w = weapons[current_weapon]
