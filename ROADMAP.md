@@ -2,31 +2,39 @@
 
 ## Year 1: Foundation (2026)
 
-### Q2 2026 — Core Game
+### Q2 2026 — Core Game ✅
 - [x] Godot 4.3 engine setup + web export pipeline
-- [x] Basic FPS controller (movement, look, collision)
+- [x] Basic FPS controller (movement, look, collision, sprint, crouch, jump)
 - [x] Scene generation system (headless)
-- [ ] Enemy spawning + AI (chase, attack, pathfind)
-- [ ] 3 working weapons with viewmodels (AK, Deagle, AWP)
-- [ ] Shooting with hit detection + damage
-- [ ] HUD (health, sats, ammo, round info)
-- [ ] Buy menu between rounds
-- [ ] 6 hand-crafted maps
-- [ ] Death/respawn system
-- [ ] Sound effects (procedural + samples)
-- [ ] Basic particle effects (muzzle flash, blood, sparks)
+- [x] Enemy spawning + AI (patrol, chase, flank, cover, attack, burst fire)
+- [x] 5 weapons with viewmodels (Knife, AK-B7, Beagle, Sabot, M4-SAT)
+- [x] Shooting with hit detection + damage + headshots (2x)
+- [x] HUD (health, armor, sats, ammo, round info, stance, crosshair)
+- [x] Buy menu between rounds (weapons, gear, grenades, ammo, utility)
+- [x] 6 hand-crafted maps (Mining Facility, Silk Road, Citadel, Offshore, Vault, Trainyard)
+- [x] Death/respawn system (REKT screen, sats penalty, tips, restart)
+- [x] Sound effects (shoot, kill, hurt, headshot, reload, footstep, round start)
+- [x] Particle effects (muzzle flash, blood splatter, bullet impacts, sparks)
+- [x] Minimap/radar with enemy tracking
+- [x] Kill streaks (Double Kill → Godlike → Whole Coiner)
+- [x] Sats popup on kills
+- [x] Damage indicators (direction + overlay)
+- [x] WebGL context loss recovery
+- [x] Main menu with map selection
+- [x] Settings menu (sensitivity, volume, FOV, crosshair color)
+- [x] Map rotation system (every 5 rounds)
 
 ### Q3 2026 — Characters & Polish
 - [ ] Import Mixamo character models (rigged, animated)
 - [ ] Walk/run/death/idle animations
-- [ ] 6 enemy types (Banker, Shitcoiner, Bear, Roger Ver, Adam Back, Fed)
-- [ ] Unique enemy visuals (suits, accessories, colors)
-- [ ] Weapon pickup/drop system
-- [ ] Grenade (flashbang, BCash grenade)
-- [ ] Armor + helmet system
-- [ ] Kill streaks ("DOUBLE KILL", "UNSTOPPABLE")
-- [ ] Scoreboard
-- [ ] Settings menu (sensitivity, volume, FOV)
+- [x] 6 enemy types (Banker, Shitcoiner, Bear, Roger, Whale, Fed) + Satoshi boss
+- [x] Unique enemy visuals (suits, accessories, colors, eyes, health bars)
+- [x] Weapon pickup/drop system
+- [x] Grenades (flashbang, BCash explosive, smoke)
+- [x] Armor + helmet system (via buy menu)
+- [x] Kill streaks ("DOUBLE KILL" → "WHOLE COINER!")
+- [x] Scoreboard
+- [x] Settings menu (sensitivity, volume, FOV, crosshair color)
 
 ### Q4 2026 — Maps & Content
 - [ ] 21 unique maps with proper BSP-style geometry
