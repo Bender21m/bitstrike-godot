@@ -232,8 +232,8 @@ func _input(event):
 			KEY_2: switch_weapon(1)
 			KEY_3: switch_weapon(2)
 			KEY_4: switch_weapon(3)
-			KEY_C: toggle_crouch()
-			KEY_CTRL: toggle_crouch()
+			KEY_C: pass  # Crouch is now hold-Shift
+			KEY_CTRL: pass  # Crouch is now hold-Shift
 			KEY_E: _interact_hack_site()
 			KEY_G:
 				if has_node("/root/Grenades"):
@@ -258,12 +258,11 @@ func _physics_process(delta):
 	elif Input.is_key_pressed(KEY_SPACE):
 		velocity.y = 4.5  # Jump force
 	
-	# Determine speed
-	is_sprinting = Input.is_key_pressed(KEY_SHIFT) and not is_crouching
+	# Determine speed — Shift = crouch (CS 1.6 style)
+	is_crouching = Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_CTRL)
+	is_sprinting = false  # No sprint key — use scroll/movement like CS
 	var spd = SPEED
-	if is_sprinting:
-		spd = SPRINT_SPEED
-	elif is_crouching:
+	if is_crouching:
 		spd = CROUCH_SPEED
 	
 	# Movement input
