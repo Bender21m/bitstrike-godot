@@ -684,7 +684,7 @@ func _physics_process_hack_interaction():
 			if vel_h > 0.5:
 				hd.cancel_defuse()
 
-func take_damage(amount: int):
+func take_damage(amount: int, attacker_pos: Vector3 = Vector3.ZERO):
 	var dmg = amount
 	if armor > 0:
 		var absorbed = dmg * 0.5
@@ -694,9 +694,14 @@ func take_damage(amount: int):
 	# Flash damage overlay
 	var overlay = get_tree().root.find_child("DamageOverlay", true, false)
 	if overlay:
-		overlay.color = Color(1, 0, 0, 0.3)
+		var intensity = clamp(float(dmg) / 50.0, 0.15, 0.5)
+		overlay.color = Color(1, 0, 0, intensity)
 		get_tree().create_timer(0.15).timeout.connect(func(): 
 			if is_instance_valid(overlay): overlay.color = Color(1, 0, 0, 0))
+	
+	# Damage direction indicator
+	if attacker_pos != Vector3.ZERO and has_node("/root/DamageIndicator"):
+		$"/root/DamageIndicator".show_damage_from(attacker_pos)
 	if health <= 0:
 		die()
 

@@ -298,7 +298,7 @@ func _state_attack(delta):
 		if dist < melee_range:
 			if attack_cooldown <= 0:
 				if player.has_method("take_damage"):
-					player.take_damage(attack_damage)
+					player.take_damage(attack_damage, global_position)
 					if has_node("/root/AudioManager"):
 						$"/root/AudioManager".play("hurt")
 				attack_cooldown = 0.8
@@ -464,7 +464,7 @@ func _fire_at_player():
 	
 	if randf() < hit_chance:
 		if player.has_method("take_damage"):
-			player.take_damage(attack_damage)
+			player.take_damage(attack_damage, global_position)
 			if has_node("/root/AudioManager"):
 				$"/root/AudioManager".play("hurt")
 	
