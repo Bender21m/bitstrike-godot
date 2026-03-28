@@ -127,43 +127,8 @@ func _ready():
 	_setup_weapon_model()
 
 func _setup_weapon_model():
-	# Try to load GLB model first
-	var ak_model_path = "res://assets/models/weapons/ak74m/scene.gltf"
-	if ResourceLoader.exists(ak_model_path):
-		var scene = load(ak_model_path)
-		if scene and scene is PackedScene:
-			fps_model = scene.instantiate()
-			fps_model.name = "FPSModel"
-			# CS 1.6 style viewmodel positioning:
-			# Model from Sketchfab has internal 100x scale (Blender cm → m)
-			# and -90° X rotation. We scale down and position to lower-right.
-			# Tweak these values to get the classic CS 1.6 look:
-			#   - Arms enter from bottom-right
-			#   - Barrel points roughly at crosshair
-			#   - Gun fills lower-right quadrant
-			fps_model.scale = Vector3(0.007, 0.007, 0.007)
-			fps_model.position = Vector3(0.22, -0.35, -0.3)
-			# Rotate to face forward: model faces +Y in Blender,
-			# Godot camera looks -Z, so rotate 180° on Y
-			fps_model.rotation_degrees = Vector3(0, 180, 0)
-			
-			var holder = find_child("WeaponHolder", true, false)
-			if holder:
-				# Hide old static meshes
-				for child in holder.get_children():
-					if child is MeshInstance3D or child is OmniLight3D:
-						child.visible = false
-				holder.add_child(fps_model)
-			else:
-				camera.add_child(fps_model)
-			
-			# Find animation player
-			fps_anim_player = _find_anim_player(fps_model)
-			if fps_anim_player:
-				_play_anim("Rig|AK_Idle")
-			return
-	
-	# Fallback: procedural weapon models
+	# Always use procedural weapon models (reliable, no import issues)
+	# GLB models need Godot editor import — raw GLTF won't work in web export
 	var weapon_script = load("res://scripts/weapon_models.gd")
 	if weapon_script:
 		weapon_model_builder = Node3D.new()
@@ -171,6 +136,7 @@ func _setup_weapon_model():
 		weapon_model_builder.name = "WeaponModels"
 		var holder = find_child("WeaponHolder", true, false)
 		if holder:
+			# Hide the old static gun meshes from the scene
 			for child in holder.get_children():
 				if child is MeshInstance3D:
 					child.visible = false
