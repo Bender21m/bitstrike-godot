@@ -72,13 +72,22 @@ func _ready():
 	# Round 1 starts gentler
 	spawn_wave(3)
 
+var carrier_spawned: bool = false
+
 func spawn_wave(count: int):
 	for e in enemies:
 		if is_instance_valid(e):
 			e.queue_free()
 	enemies.clear()
 	satoshi_spawned_this_round = false
+	carrier_spawned = false
 	update_round_label()
+	
+	# Start hack/defuse game mode if available
+	if has_node("/root/HackDefuse") and round_num >= 2:
+		var hd = $"/root/HackDefuse"
+		if round_num == 2 and hd.round_state == 0:
+			hd.start_game_mode()
 	
 	# Chance to spawn Satoshi after round 5
 	if round_num >= 5 and randf() < 0.03 * (round_num - 4):

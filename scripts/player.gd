@@ -223,6 +223,7 @@ func _input(event):
 			KEY_4: switch_weapon(3)
 			KEY_C: toggle_crouch()
 			KEY_CTRL: toggle_crouch()
+			KEY_E: _interact_hack_site()
 			KEY_ESCAPE:
 				var bm = get_tree().root.find_child("BuyMenu", true, false)
 				if bm and bm.is_open:
@@ -303,6 +304,9 @@ func _physics_process(delta):
 	
 	# === FPS ANIMATION STATE ===
 	_update_fps_animation(is_moving)
+	
+	# Hack/defuse interaction check
+	_physics_process_hack_interaction()
 	
 	move_and_slide()
 	update_hud()
@@ -509,6 +513,36 @@ func switch_weapon(idx: int):
 func _update_weapon_model():
 	if weapon_model_builder and weapon_model_builder.has_method("build_weapon"):
 		weapon_model_builder.build_weapon(weapons[current_weapon].name)
+
+func _interact_hack_site():
+	if not has_node("/root/HackDefuse"):
+		return
+	var hd = $"/root/HackDefuse"
+	
+	# Check if near a hack site
+	var nearest = hd.get_nearest_site(global_position)
+	if nearest.distance > 3.0:
+		add_kill_feed("No hack site nearby")
+		return
+	
+	# If device is planted, try to defuse
+	if hd.device_planted:
+		if not hd.is_defusing:
+			hd.try_defuse()
+			add_kill_feed("Defusing 51%% attack at Site %s..." % nearest.site)
+	else:
+		# In single-player, enemies plant. Player defuses.
+		# For now, allow player to "test plant" 
+		pass
+
+func _physics_process_hack_interaction():
+	# Cancel plant/defuse if player moves or shoots
+	if has_node("/root/HackDefuse"):
+		var hd = $"/root/HackDefuse"
+		if hd.is_defusing:
+			var vel_h = Vector2(velocity.x, velocity.z).length()
+			if vel_h > 0.5:
+				hd.cancel_defuse()
 
 func take_damage(amount: int):
 	var dmg = amount
