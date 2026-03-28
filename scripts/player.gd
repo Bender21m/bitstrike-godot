@@ -27,6 +27,7 @@ var is_sprinting: bool = false
 var is_reloading: bool = false
 var reload_timer: float = 0.0
 var shots_fired: int = 0  # For recoil pattern
+var mouse_held: bool = false  # For full-auto fire
 
 # === WEAPON BOB ===
 var bob_time: float = 0.0
@@ -50,22 +51,26 @@ var current_anim: String = ""
 
 var weapons = [
 	{"name": "AK-B7", "ammo": 30, "max_ammo": 30, "reserve": 90,
-	 "damage": 25, "fire_rate": 0.1, "recoil": 0.09, "recoil_h": 0.035,
+	 "damage": 25, "fire_rate": 0.1, "auto": true,
+	 "recoil": 0.09, "recoil_h": 0.035,
 	 "spread_base": 0.008, "spread_move": 0.045, "spread_run": 0.09,
 	 "spread_jump": 0.25, "spread_crouch": 0.004, "spread_spray": 0.005,
 	 "reload_time": 2.2, "recoil_pattern": "ak"},
 	{"name": "BEAGLE", "ammo": 7, "max_ammo": 7, "reserve": 35,
-	 "damage": 55, "fire_rate": 0.4, "recoil": 0.15, "recoil_h": 0.06,
+	 "damage": 55, "fire_rate": 0.4, "auto": false,
+	 "recoil": 0.15, "recoil_h": 0.06,
 	 "spread_base": 0.012, "spread_move": 0.035, "spread_run": 0.07,
 	 "spread_jump": 0.2, "spread_crouch": 0.008, "spread_spray": 0.008,
 	 "reload_time": 1.8, "recoil_pattern": "pistol"},
 	{"name": "SABOT", "ammo": 5, "max_ammo": 5, "reserve": 20,
-	 "damage": 120, "fire_rate": 0.8, "recoil": 0.3, "recoil_h": 0.02,
+	 "damage": 120, "fire_rate": 0.8, "auto": false,
+	 "recoil": 0.3, "recoil_h": 0.02,
 	 "spread_base": 0.001, "spread_move": 0.06, "spread_run": 0.15,
 	 "spread_jump": 0.35, "spread_crouch": 0.0005, "spread_spray": 0.002,
 	 "reload_time": 3.0, "recoil_pattern": "sniper"},
 	{"name": "M4-SAT", "ammo": 25, "max_ammo": 25, "reserve": 75,
-	 "damage": 28, "fire_rate": 0.09, "recoil": 0.065, "recoil_h": 0.025,
+	 "damage": 28, "fire_rate": 0.09, "auto": true,
+	 "recoil": 0.065, "recoil_h": 0.025,
 	 "spread_base": 0.006, "spread_move": 0.035, "spread_run": 0.07,
 	 "spread_jump": 0.22, "spread_crouch": 0.003, "spread_spray": 0.004,
 	 "reload_time": 2.0, "recoil_pattern": "m4"}
@@ -206,8 +211,10 @@ func _input(event):
 		weapon_sway_x -= event.relative.x * 0.0003
 		weapon_sway_y -= event.relative.y * 0.0003
 	
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		shoot()
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		mouse_held = event.pressed
+		if event.pressed:
+			shoot()  # First shot on click
 	
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
@@ -304,6 +311,13 @@ func _physics_process(delta):
 	
 	# === FPS ANIMATION STATE ===
 	_update_fps_animation(is_moving)
+	
+	# Full-auto fire when holding mouse (only for auto weapons like AK, M4)
+	var current_w = weapons[current_weapon]
+	if mouse_held and mouse_captured and current_w.get("auto", false):
+		var bm = get_tree().root.find_child("BuyMenu", true, false)
+		if not (bm and bm.is_open):
+			shoot()
 	
 	# Hack/defuse interaction check
 	_physics_process_hack_interaction()
