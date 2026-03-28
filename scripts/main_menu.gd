@@ -171,6 +171,11 @@ func _add_menu_button(parent: VBoxContainer, text: String, color: Color, callbac
 func _start_game(map_index: int):
 	is_showing = false
 	visible = false
+	# Disable mouse blocking so player can capture on click
+	process_mode = Node.PROCESS_MODE_DISABLED
+	for child in get_children():
+		if child is Control:
+			child.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	# Set selected map
 	if has_node("/root/MapManager"):
