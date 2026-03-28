@@ -44,6 +44,14 @@ var maps = [
 		"spawn_offset": Vector3(-6, 1, 0),
 		"map_size": 30,
 	},
+	{
+		"name": "BLOCKCHAIN RAIL",
+		"script": "res://scripts/map_trainyard.gd",
+		"description": "Industrial trainyard. Shipping containers, train cars, control tower.",
+		"icon": "🚂",
+		"spawn_offset": Vector3(0, 1, 0),
+		"map_size": 44,
+	},
 ]
 
 var current_map_index: int = 0

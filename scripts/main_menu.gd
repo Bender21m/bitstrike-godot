@@ -77,6 +77,7 @@ func _build_ui():
 				Color(0.4, 0.5, 0.9),    # Citadel — blue night
 				Color(0.2, 0.7, 0.5),    # Offshore — tropical green
 				Color(0.85, 0.65, 0.13), # The Vault — gold
+				Color(0.5, 0.5, 0.55),   # Blockchain Rail — steel grey
 			]
 			var color = map_colors[i] if i < map_colors.size() else Color(0.6, 0.6, 0.6)
 			var btn_text = "%s  %s" % [map_data.icon, map_data.name]
