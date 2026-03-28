@@ -172,7 +172,7 @@ func _explode_flashbang(pos: Vector3):
 			continue
 		var dist2 = enemy.global_position.distance_to(pos)
 		if dist2 < 12.0 and enemy.has_method("_apply_flinch"):
-			var stun_time = clamp(2.0 - dist / 8.0, 0.5, 2.0)
+			var stun_time = clamp(2.0 - dist2 / 8.0, 0.5, 2.0)
 			enemy._apply_flinch(stun_time)
 
 func _flash_player_screen(intensity: float):
@@ -240,7 +240,7 @@ func _explode_bcash(pos: Vector3):
 	if player:
 		var dist_e = player.global_position.distance_to(pos)
 		if dist_e < damage_radius:
-			var dmg_e = int(max_damage * 0.6 * (1.0 - dist / damage_radius))
+			var dmg_e = int(max_damage * 0.6 * (1.0 - dist_e / damage_radius))
 			if dmg_e > 0 and player.has_method("take_damage"):
 				player.take_damage(dmg_e)
 

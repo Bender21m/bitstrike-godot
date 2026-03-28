@@ -203,7 +203,7 @@ func _build_tunnel_system():
 	for i in range(5):
 		var step_y2 = -0.4 * (5 - i)
 		var step_z2 = 14 + i * 0.8
-		_add_static_box(parent, Vector3(17, step_y, step_z2), Vector3(1.5, 0.4, 0.8), mat_concrete_wall)
+		_add_static_box(parent, Vector3(17, step_y2, step_z2), Vector3(1.5, 0.4, 0.8), mat_concrete_wall)
 	
 	# Tunnel lighting (red emergency)
 	var t_light1 = OmniLight3D.new()

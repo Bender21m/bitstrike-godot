@@ -546,9 +546,8 @@ func switch_weapon(idx: int):
 		is_switching = false
 	
 	# Play draw animation
-	if fps_anim_player and fps_anim_player.has_animation("Rig|AK_Draw"):
-		fps_anim_player.play("Rig|AK_Draw")
-		current_anim = "Rig|AK_Draw"
+	if weapon_model_builder and weapon_model_builder.has_method("play_anim"):
+		weapon_model_builder.play_anim("draw")
 
 func _update_weapon_model():
 	if weapon_model_builder and weapon_model_builder.has_method("build_weapon"):

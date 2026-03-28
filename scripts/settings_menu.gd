@@ -88,7 +88,7 @@ func _build_ui():
 		fov = val
 		var player2 = get_tree().get_first_node_in_group("player")
 		if player2:
-			var cam = player.find_child("Camera3D", true, false)
+			var cam = player2.find_child("Camera3D", true, false)
 			if cam:
 				cam.fov = val
 	)
