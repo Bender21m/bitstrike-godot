@@ -252,9 +252,11 @@ func _input(event):
 				mouse_captured = false
 
 func _physics_process(delta):
-	# Gravity
+	# Gravity + Jump
 	if not is_on_floor():
 		velocity.y -= GRAVITY * delta
+	elif Input.is_key_pressed(KEY_SPACE):
+		velocity.y = 4.5  # Jump force
 	
 	# Determine speed
 	is_sprinting = Input.is_key_pressed(KEY_SHIFT) and not is_crouching
