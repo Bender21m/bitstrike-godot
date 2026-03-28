@@ -36,6 +36,14 @@ var maps = [
 		"spawn_offset": Vector3(0, 1, 0),
 		"map_size": 40,
 	},
+	{
+		"name": "THE VAULT",
+		"script": "res://scripts/map_vault.gd",
+		"description": "Underground bank vault. Gold bars, security office, tight corridors.",
+		"icon": "🏦",
+		"spawn_offset": Vector3(-6, 1, 0),
+		"map_size": 30,
+	},
 ]
 
 var current_map_index: int = 0
