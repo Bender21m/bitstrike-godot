@@ -366,7 +366,7 @@ func _build_lighting():
 	environment.fog_enabled = true
 	environment.fog_light_color = Color(0.5, 0.52, 0.55)
 	environment.fog_density = 0.004
-	environment.tonemap_mode = Environment.TONE_MAP_ACES
+	environment.tonemap_mode = 2
 	env.environment = environment
 	add_child(env)
 	
@@ -394,13 +394,13 @@ func _build_lighting():
 		Vector3(5, 6, -10), Vector3(5, 6, 10),
 	]
 	for fpos in flood_positions:
-		var light = OmniLight3D.new()
-		light.light_color = Color(0.9, 0.85, 0.7)
-		light.light_energy = 0.6
-		light.omni_range = 12.0
-		light.shadow_enabled = true
-		light.position = fpos
-		add_child(light)
+		var light2 = OmniLight3D.new()
+		light2.light_color = Color(0.9, 0.85, 0.7)
+		light2.light_energy = 0.6
+		light2.omni_range = 12.0
+		light2.shadow_enabled = true
+		light2.position = fpos
+		add_child(light2)
 		
 		# Pole
 		var pole = MeshInstance3D.new()

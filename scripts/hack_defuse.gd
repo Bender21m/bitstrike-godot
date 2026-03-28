@@ -526,8 +526,8 @@ func _update_hud():
 	elif is_defusing:
 		progress_bg.visible = true
 		progress_bar.visible = true
-		var pct = defuse_progress / DEFUSE_TIME
-		progress_bar.offset_right = -100 + pct * 200
+		var pct2 = defuse_progress / DEFUSE_TIME
+		progress_bar.offset_right = -100 + pct2 * 200
 		progress_bar.color = Color(0, 0.8, 0.3)  # Green for defusing
 	else:
 		progress_bg.visible = false

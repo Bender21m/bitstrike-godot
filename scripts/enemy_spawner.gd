@@ -297,12 +297,12 @@ func create_enemy(type: String, pos: Vector3) -> CharacterBody3D:
 		body_mesh.scale = Vector3(1.5, 1.2, 1.5)
 		head_mesh.scale = Vector3(1.3, 1.3, 1.3)
 		# Blue glow
-		var glow = OmniLight3D.new()
-		glow.light_color = Color(0.2, 0.4, 0.8)
-		glow.light_energy = 0.4
-		glow.omni_range = 4.0
-		glow.position.y = 1.0
-		enemy.add_child(glow)
+		var glow2 = OmniLight3D.new()
+		glow2.light_color = Color(0.2, 0.4, 0.8)
+		glow2.light_energy = 0.4
+		glow2.omni_range = 4.0
+		glow2.position.y = 1.0
+		enemy.add_child(glow2)
 	
 	# --- HEALTH BAR (floating above head) ---
 	var health_bar = MeshInstance3D.new()

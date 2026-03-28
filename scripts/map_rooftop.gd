@@ -447,7 +447,7 @@ func _build_lighting():
 	environment.fog_enabled = true
 	environment.fog_light_color = Color(0.08, 0.1, 0.15)
 	environment.fog_density = 0.005
-	environment.tonemap_mode = Environment.TONE_MAP_ACES
+	environment.tonemap_mode = 2
 	environment.glow_enabled = true
 	environment.glow_intensity = 0.3
 	env.environment = environment

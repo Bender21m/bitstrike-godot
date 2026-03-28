@@ -170,8 +170,8 @@ func _explode_flashbang(pos: Vector3):
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(enemy):
 			continue
-		var dist = enemy.global_position.distance_to(pos)
-		if dist < 12.0 and enemy.has_method("_apply_flinch"):
+		var dist2 = enemy.global_position.distance_to(pos)
+		if dist2 < 12.0 and enemy.has_method("_apply_flinch"):
 			var stun_time = clamp(2.0 - dist / 8.0, 0.5, 2.0)
 			enemy._apply_flinch(stun_time)
 
@@ -238,11 +238,11 @@ func _explode_bcash(pos: Vector3):
 	# Damage player too if too close (like CS)
 	var player = get_tree().get_first_node_in_group("player")
 	if player:
-		var dist = player.global_position.distance_to(pos)
-		if dist < damage_radius:
-			var dmg = int(max_damage * 0.6 * (1.0 - dist / damage_radius))
-			if dmg > 0 and player.has_method("take_damage"):
-				player.take_damage(dmg)
+		var dist_e = player.global_position.distance_to(pos)
+		if dist_e < damage_radius:
+			var dmg_e = int(max_damage * 0.6 * (1.0 - dist / damage_radius))
+			if dmg_e > 0 and player.has_method("take_damage"):
+				player.take_damage(dmg_e)
 
 func _spawn_smoke(pos: Vector3):
 	# Smoke grenade — creates visual obstruction

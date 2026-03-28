@@ -288,10 +288,10 @@ func _physics_process(delta):
 	
 	# Reset shots_fired when not shooting
 	var now = Time.get_ticks_msec() / 1000.0
-	var w = weapons[current_weapon]
-	if now - last_shot_time > w.fire_rate * 2.5:
+	var cur_w = weapons[current_weapon]
+	if now - last_shot_time > cur_w.fire_rate * 2.5:
 		shots_fired = max(0, shots_fired - 1)
-	if now - last_shot_time > w.fire_rate * 5.0:
+	if now - last_shot_time > cur_w.fire_rate * 5.0:
 		shots_fired = 0
 	
 	# === CROUCH INTERPOLATION ===

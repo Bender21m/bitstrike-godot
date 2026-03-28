@@ -299,9 +299,9 @@ func _build_m4_sat() -> Node3D:
 	_add_box(gun, Vector3(-0.016, 0.005, -0.22), Vector3(0.005, 0.025, 0.16), metal_dark, 0.85, 0.3)
 	# M-LOK slots
 	for i in range(3):
-		var z = -0.16 - i * 0.04
-		_add_box(gun, Vector3(0.018, 0.005, z), Vector3(0.002, 0.012, 0.025), Color(0, 0, 0), 0.0, 1.0)
-		_add_box(gun, Vector3(-0.018, 0.005, z), Vector3(0.002, 0.012, 0.025), Color(0, 0, 0), 0.0, 1.0)
+		var z2 = -0.16 - i * 0.04
+		_add_box(gun, Vector3(0.018, 0.005, z2), Vector3(0.002, 0.012, 0.025), Color(0, 0, 0), 0.0, 1.0)
+		_add_box(gun, Vector3(-0.018, 0.005, z2), Vector3(0.002, 0.012, 0.025), Color(0, 0, 0), 0.0, 1.0)
 	
 	# --- FLASH HIDER ---
 	_add_cylinder(gun, Vector3(0, 0.005, -0.47), Vector3(0.012, 0.03, 0.012), metal_dark, 0.9, 0.2, 8)
@@ -334,8 +334,8 @@ func _build_m4_sat() -> Node3D:
 	grip.rotation.x = -0.25
 	# Grip texture
 	for i in range(4):
-		var y = -0.025 - i * 0.01
-		_add_box(gun, Vector3(0.011, y, 0.06), Vector3(0.001, 0.003, 0.015), Color(0.05, 0.05, 0.05), 0.0, 0.95)
+		var y2 = -0.025 - i * 0.01
+		_add_box(gun, Vector3(0.011, y2, 0.06), Vector3(0.001, 0.003, 0.015), Color(0.05, 0.05, 0.05), 0.0, 0.95)
 	# Grip base
 	_add_box(gun, Vector3(0, -0.075, 0.065), Vector3(0.022, 0.008, 0.024), grip_color, 0.0, 0.9)
 	

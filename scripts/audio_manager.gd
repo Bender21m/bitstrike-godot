@@ -278,30 +278,30 @@ func _make_reload() -> AudioStreamWAV:
 		
 		# Mag release click (0-30ms)
 		if t < 0.03:
-			var env = (1.0 - t / 0.03)
-			sample += sin(t * TAU * 2000) * env * 0.3
-			sample += randf_range(-1.0, 1.0) * env * 0.2
+			var e1 = (1.0 - t / 0.03)
+			sample += sin(t * TAU * 2000) * e1 * 0.3
+			sample += randf_range(-1.0, 1.0) * e1 * 0.2
 		
 		# Mag sliding out (30-120ms)
 		if t > 0.03 and t < 0.12:
-			var local_t = t - 0.03
-			var env = sin(local_t / 0.09 * PI) * 0.15
-			sample += randf_range(-1.0, 1.0) * env
+			var lt2 = t - 0.03
+			var e2 = sin(lt2 / 0.09 * PI) * 0.15
+			sample += randf_range(-1.0, 1.0) * e2
 		
 		# Mag insert (180-250ms) 
 		if t > 0.18 and t < 0.25:
-			var local_t = t - 0.18
-			var env = exp(-local_t * 40.0)
-			sample += sin(local_t * TAU * 1500) * env * 0.3
-			sample += randf_range(-1.0, 1.0) * env * 0.25
+			var lt3 = t - 0.18
+			var e3 = exp(-lt3 * 40.0)
+			sample += sin(lt3 * TAU * 1500) * e3 * 0.3
+			sample += randf_range(-1.0, 1.0) * e3 * 0.25
 		
 		# Bolt release (300-370ms)
 		if t > 0.30 and t < 0.37:
-			var local_t = t - 0.30
-			var env = exp(-local_t * 50.0)
-			sample += sin(local_t * TAU * 800) * env * 0.35
-			sample += sin(local_t * TAU * 3000) * env * 0.15
-			sample += randf_range(-1.0, 1.0) * env * 0.2
+			var lt4 = t - 0.30
+			var e4 = exp(-lt4 * 50.0)
+			sample += sin(lt4 * TAU * 800) * e4 * 0.35
+			sample += sin(lt4 * TAU * 3000) * e4 * 0.15
+			sample += randf_range(-1.0, 1.0) * e4 * 0.2
 		
 		var val = int(clamp(sample, -1.0, 1.0) * 32767)
 		data[i * 2] = val & 0xFF
