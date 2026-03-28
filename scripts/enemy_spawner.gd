@@ -453,6 +453,13 @@ func _physics_process(_delta):
 		if player:
 			player.sats += bonus
 		
+		# Track map rotation
+		if has_node("/root/MapManager"):
+			$"/root/MapManager".on_round_complete()
+			if $"/root/MapManager".should_rotate():
+				$"/root/MapManager".next_map()
+				_show_map_change()
+		
 		# Show round clear message
 		_show_round_clear(bonus)
 		
@@ -481,6 +488,17 @@ func _spawn_satoshi():
 	satoshi.set_script(satoshi_script)
 	add_child(satoshi)
 	enemies.append(satoshi)
+
+func _show_map_change():
+	if has_node("/root/MapManager") and has_node("/root/RoundAnnouncer"):
+		var map_name = $"/root/MapManager".get_map_name()
+		$"/root/RoundAnnouncer".announce_custom(
+			"MAP CHANGE", "Loading: %s" % map_name,
+			Color(0.97, 0.58, 0.1), 3.0)
+		# Reload scene to load new map
+		get_tree().create_timer(3.5).timeout.connect(func():
+			get_tree().reload_current_scene()
+		)
 
 func _show_round_clear(bonus: int):
 	var p = get_tree().get_first_node_in_group("player")
