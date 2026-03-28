@@ -24,15 +24,22 @@ jobs:
 
       - name: Setup export templates
         run: |
-          mkdir -p /root/.local/share/godot/export_templates/4.3.stable
-          mv /root/.local/share/godot/export_templates/4.3.stable.mono/* /root/.local/share/godot/export_templates/4.3.stable/ 2>/dev/null || true
-          # The barichello image already has templates, but let's make sure web is there
-          ls /root/.local/share/godot/export_templates/4.3.stable/ | head -5
+          # barichello/godot-ci stores templates in /root/ but GitHub Actions
+          # runs as a different user, so HOME=/github/home
+          mkdir -p $HOME/.local/share/godot/export_templates/4.3.stable
+          # Copy from wherever they exist in the image
+          cp -r /root/.local/share/godot/export_templates/4.3.stable/* \
+            $HOME/.local/share/godot/export_templates/4.3.stable/ 2>/dev/null || true
+          # Also try the mono path
+          cp -r /root/.local/share/godot/export_templates/4.3.stable.mono/* \
+            $HOME/.local/share/godot/export_templates/4.3.stable/ 2>/dev/null || true
+          echo "Templates at $HOME/.local/share/godot/export_templates/4.3.stable/:"
+          ls $HOME/.local/share/godot/export_templates/4.3.stable/ 2>/dev/null || echo "No templates found"
 
       - name: Export for Web
         run: |
           mkdir -p export/web
-          godot --headless --export-release "Web" export/web/index.html 2>&1 || true
+          godot --headless --export-release "Web" export/web/index.html
           ls -la export/web/
 
       - name: Verify export
@@ -43,16 +50,6 @@ jobs:
           fi
           echo "Export successful!"
           ls -lh export/web/
-
-      - name: Add COOP/COEP headers
-        run: |
-          # SharedArrayBuffer requires these headers for threaded builds
-          # GitHub Pages uses a custom 404 approach, but we can add a _headers file
-          cat > export/web/_headers << 'EOF'
-          /*
-            Cross-Origin-Opener-Policy: same-origin
-            Cross-Origin-Embedder-Policy: require-corp
-          EOF
 
       - uses: actions/upload-pages-artifact@v3
         with:

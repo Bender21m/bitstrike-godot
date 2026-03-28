@@ -55,9 +55,9 @@ func _input(event):
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
 			KEY_B:
-				var buy_menu = get_tree().root.find_child("BuyMenu", true, false)
-				if buy_menu and buy_menu.has_method("toggle_menu"):
-					buy_menu.toggle_menu()
+				var bm_toggle = get_tree().root.find_child("BuyMenu", true, false)
+				if bm_toggle and bm_toggle.has_method("toggle_menu"):
+					bm_toggle.toggle_menu()
 				return
 			KEY_R: reload_weapon()
 			KEY_1: switch_weapon(0)
