@@ -4,6 +4,8 @@ extends Node
 # Shows sats earned floating up from crosshair area
 
 var popup_canvas: CanvasLayer
+var last_popup_time: float = 0.0
+var popup_cooldown: float = 0.3  # Max one popup per 0.3s
 
 func _ready():
 	popup_canvas = CanvasLayer.new()
@@ -11,6 +13,12 @@ func _ready():
 	add_child(popup_canvas)
 
 func show_sats(amount: int, reason: String = ""):
+	# Throttle popups
+	var now = Time.get_ticks_msec() / 1000.0
+	if now - last_popup_time < popup_cooldown:
+		return
+	last_popup_time = now
+	
 	var label = Label.new()
 	var text = "+₿%s" % _format_sats(amount)
 	if reason != "":
