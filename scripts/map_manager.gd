@@ -28,6 +28,14 @@ var maps = [
 		"spawn_offset": Vector3(0, 1, 0),
 		"map_size": 30,
 	},
+	{
+		"name": "OFFSHORE",
+		"script": "res://scripts/map_island.gd",
+		"description": "Tropical island compound. Beach, palm trees, villa, dock.",
+		"icon": "🏝️",
+		"spawn_offset": Vector3(0, 1, 0),
+		"map_size": 40,
+	},
 ]
 
 var current_map_index: int = 0
