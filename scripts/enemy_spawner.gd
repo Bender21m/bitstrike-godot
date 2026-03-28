@@ -67,12 +67,33 @@ var ai_script = preload("res://scripts/enemy_ai.gd")
 var satoshi_script = preload("res://scripts/satoshi_boss.gd")
 var satoshi_spawned_this_round: bool = false
 
+var freeze_time: float = 5.0  # Seconds before enemies start (look around, get ready)
+var round_started: bool = false
+
 func _ready():
 	player = get_tree().get_first_node_in_group("player")
-	# Round 1 starts gentler
-	spawn_wave(3)
+	# Don't spawn immediately — show objective, give player time
+	_start_round_intro()
 
 var carrier_spawned: bool = false
+
+func _start_round_intro():
+	round_started = false
+	
+	# Show objective text
+	if has_node("/root/RoundAnnouncer"):
+		$"/root/RoundAnnouncer".announce_custom(
+			"ROUND 1 — HODL OR DIE",
+			"Defend the Bitcoin mining facility\nEnemies incoming in 5 seconds...",
+			Color(0.97, 0.58, 0.1), 4.5)
+	
+	# Countdown then spawn
+	get_tree().create_timer(freeze_time).timeout.connect(func():
+		round_started = true
+		spawn_wave(3)
+		if has_node("/root/AudioManager"):
+			$"/root/AudioManager".play("round_start")
+	)
 
 func spawn_wave(count: int):
 	for e in enemies:
@@ -373,15 +394,27 @@ func _physics_process(_delta):
 			waiting_for_buy_phase = true
 		return
 	
-	# Buy phase just ended — spawn next wave
+	# Buy phase just ended — spawn next wave with brief intro
 	if waiting_for_buy_phase and gs and not gs.buy_phase:
 		waiting_for_buy_phase = false
 		round_cleared = false
-		var count = _get_wave_count(round_num)
-		spawn_wave(count)
-		# Play round start sound
-		if has_node("/root/AudioManager"):
-			$"/root/AudioManager".play("round_start")
+		
+		# Brief freeze before enemies spawn
+		if has_node("/root/RoundAnnouncer"):
+			var round_names = ["HODL OR DIE", "STACK SATS", "NO RETREAT", "BUY THE DIP",
+				"DIAMOND HANDS", "WHOLE COINER", "SATOSHI LEVEL", "CITADEL BUILDER"]
+			var rname = round_names[min(round_num - 1, round_names.size() - 1)]
+			$"/root/RoundAnnouncer".announce_custom(
+				"ROUND %d — %s" % [round_num, rname],
+				"Enemies incoming in 3 seconds...",
+				Color(0.97, 0.58, 0.1), 2.5)
+		
+		get_tree().create_timer(3.0).timeout.connect(func():
+			var count = _get_wave_count(round_num)
+			spawn_wave(count)
+			if has_node("/root/AudioManager"):
+				$"/root/AudioManager".play("round_start")
+		)
 		return
 	
 	var alive_count = 0
