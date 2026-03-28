@@ -40,23 +40,35 @@ var fps_model: Node3D  # GLB model instance
 var fps_anim_player: AnimationPlayer
 var current_anim: String = ""
 
+# === MOVEMENT ACCURACY MODIFIERS (CS 1.6 style) ===
+# Standing still = base accuracy
+# Crouching = much tighter
+# Walking = moderate penalty
+# Running = huge penalty
+# Jumping/airborne = basically useless
+# Spraying = gets progressively worse
+
 var weapons = [
 	{"name": "AK-B7", "ammo": 30, "max_ammo": 30, "reserve": 90,
-	 "damage": 25, "fire_rate": 0.1, "recoil": 0.06, "recoil_h": 0.02,
-	 "spread": 0.015, "crouch_spread_mult": 0.5, "reload_time": 2.2,
-	 "recoil_pattern": "ak"},
+	 "damage": 25, "fire_rate": 0.1, "recoil": 0.09, "recoil_h": 0.035,
+	 "spread_base": 0.008, "spread_move": 0.045, "spread_run": 0.09,
+	 "spread_jump": 0.25, "spread_crouch": 0.004, "spread_spray": 0.005,
+	 "reload_time": 2.2, "recoil_pattern": "ak"},
 	{"name": "BEAGLE", "ammo": 7, "max_ammo": 7, "reserve": 35,
-	 "damage": 55, "fire_rate": 0.4, "recoil": 0.12, "recoil_h": 0.04,
-	 "spread": 0.008, "crouch_spread_mult": 0.6, "reload_time": 1.8,
-	 "recoil_pattern": "pistol"},
+	 "damage": 55, "fire_rate": 0.4, "recoil": 0.15, "recoil_h": 0.06,
+	 "spread_base": 0.012, "spread_move": 0.035, "spread_run": 0.07,
+	 "spread_jump": 0.2, "spread_crouch": 0.008, "spread_spray": 0.008,
+	 "reload_time": 1.8, "recoil_pattern": "pistol"},
 	{"name": "SABOT", "ammo": 5, "max_ammo": 5, "reserve": 20,
-	 "damage": 120, "fire_rate": 0.8, "recoil": 0.2, "recoil_h": 0.01,
-	 "spread": 0.002, "crouch_spread_mult": 0.3, "reload_time": 3.0,
-	 "recoil_pattern": "sniper"},
+	 "damage": 120, "fire_rate": 0.8, "recoil": 0.3, "recoil_h": 0.02,
+	 "spread_base": 0.001, "spread_move": 0.06, "spread_run": 0.15,
+	 "spread_jump": 0.35, "spread_crouch": 0.0005, "spread_spray": 0.002,
+	 "reload_time": 3.0, "recoil_pattern": "sniper"},
 	{"name": "M4-SAT", "ammo": 25, "max_ammo": 25, "reserve": 75,
-	 "damage": 28, "fire_rate": 0.09, "recoil": 0.045, "recoil_h": 0.015,
-	 "spread": 0.012, "crouch_spread_mult": 0.5, "reload_time": 2.0,
-	 "recoil_pattern": "m4"}
+	 "damage": 28, "fire_rate": 0.09, "recoil": 0.065, "recoil_h": 0.025,
+	 "spread_base": 0.006, "spread_move": 0.035, "spread_run": 0.07,
+	 "spread_jump": 0.22, "spread_crouch": 0.003, "spread_spray": 0.004,
+	 "reload_time": 2.0, "recoil_pattern": "m4"}
 ]
 
 # CS-style recoil patterns (vertical, horizontal offsets per shot)
@@ -250,22 +262,22 @@ func _physics_process(delta):
 		velocity.x = move_toward(velocity.x, 0, spd * delta * 10)
 		velocity.z = move_toward(velocity.z, 0, spd * delta * 10)
 	
-	# === RECOIL RECOVERY ===
-	# Vertical recoil recovery (camera slowly comes back down)
+	# === RECOIL RECOVERY (CS 1.6: slow recovery, punishes spraying) ===
+	# Vertical recoil recovery — slower than application, so spraying pulls up
 	if recoil_vertical != 0:
-		var recovery_speed = 4.0
+		var recovery_speed = 2.5  # Slow recovery = have to pull down manually
 		var recovery = recoil_vertical * recovery_speed * delta
 		camera.rotation.x -= recovery
 		recoil_vertical *= (1.0 - recovery_speed * delta)
-		if abs(recoil_vertical) < 0.001:
+		if abs(recoil_vertical) < 0.0005:
 			recoil_vertical = 0
 	
-	# Horizontal recoil recovery
+	# Horizontal recoil recovery — also slow
 	if recoil_horizontal != 0:
-		var h_recovery = recoil_horizontal * 5.0 * delta
+		var h_recovery = recoil_horizontal * 3.0 * delta
 		rotate_y(-h_recovery)
-		recoil_horizontal *= (1.0 - 5.0 * delta)
-		if abs(recoil_horizontal) < 0.001:
+		recoil_horizontal *= (1.0 - 3.0 * delta)
+		if abs(recoil_horizontal) < 0.0005:
 			recoil_horizontal = 0
 	
 	# Reset shots_fired when not shooting
@@ -362,14 +374,20 @@ func shoot():
 	var pattern_idx = min(shots_fired, pattern.size() - 1)
 	var recoil_offset = pattern[pattern_idx]
 	
-	# Apply recoil to camera
-	var v_recoil = recoil_offset.y * w.recoil * 0.5
-	var h_recoil = recoil_offset.x * w.get("recoil_h", 0.02) * 0.5
+	# Apply recoil to camera — CS 1.6 style (strong, need to counter-strafe)
+	var v_recoil = recoil_offset.y * w.recoil
+	var h_recoil = recoil_offset.x * w.get("recoil_h", 0.02)
 	
-	# Crouching reduces recoil
+	# Stance modifiers for recoil
 	if is_crouching:
-		v_recoil *= 0.6
-		h_recoil *= 0.6
+		v_recoil *= 0.55  # Crouching helps a lot
+		h_recoil *= 0.55
+	elif not is_on_floor():
+		v_recoil *= 1.8  # Jumping makes recoil way worse
+		h_recoil *= 2.0
+	elif is_sprinting:
+		v_recoil *= 1.4  # Running increases recoil
+		h_recoil *= 1.5
 	
 	camera.rotation.x += v_recoil
 	rotate_y(h_recoil)
@@ -378,14 +396,28 @@ func shoot():
 	
 	shots_fired += 1
 	
-	# === SPREAD (inaccuracy) ===
-	var spread = w.get("spread", 0.015)
-	if is_crouching:
-		spread *= w.get("crouch_spread_mult", 0.5)
-	if is_sprinting:
-		spread *= 2.5
-	# More spread the more you shoot
-	spread += shots_fired * 0.002
+	# === CS 1.6 ACCURACY MODEL ===
+	# Base spread depends on stance + movement
+	var spread = w.get("spread_base", 0.008)
+	
+	# Movement state penalties (these stack logically)
+	var vel_h = Vector2(velocity.x, velocity.z).length()
+	if not is_on_floor():
+		# Airborne — nearly useless accuracy
+		spread = w.get("spread_jump", 0.25)
+	elif is_sprinting or vel_h > SPRINT_SPEED * 0.8:
+		# Running — very inaccurate
+		spread = w.get("spread_run", 0.09)
+	elif vel_h > SPEED * 0.3:
+		# Walking — moderate penalty
+		spread = w.get("spread_move", 0.045)
+	elif is_crouching:
+		# Crouching + still = best accuracy
+		spread = w.get("spread_crouch", 0.004)
+	
+	# Spray penalty — gets worse with sustained fire (CS 1.6 core mechanic)
+	var spray_penalty = shots_fired * w.get("spread_spray", 0.005)
+	spread += spray_penalty
 	
 	# Sound
 	if has_node("/root/AudioManager"):
@@ -550,16 +582,21 @@ func update_hud():
 
 func _update_crosshair():
 	var w = weapons[current_weapon]
-	var spread = w.get("spread", 0.015)
-	if is_crouching:
-		spread *= w.get("crouch_spread_mult", 0.5)
-	if is_sprinting:
-		spread *= 2.5
-	spread += shots_fired * 0.002
+	# Calculate current spread the same way as shoot()
+	var spread = w.get("spread_base", 0.008)
+	var vel_h = Vector2(velocity.x, velocity.z).length()
+	if not is_on_floor():
+		spread = w.get("spread_jump", 0.25)
+	elif is_sprinting or vel_h > SPRINT_SPEED * 0.8:
+		spread = w.get("spread_run", 0.09)
+	elif vel_h > SPEED * 0.3:
+		spread = w.get("spread_move", 0.045)
+	elif is_crouching:
+		spread = w.get("spread_crouch", 0.004)
+	spread += shots_fired * w.get("spread_spray", 0.005)
 	
-	# Dynamic crosshair size based on spread
-	var cross_size = clamp(spread * 800.0, 6.0, 30.0)
-	var gap = clamp(spread * 400.0, 2.0, 15.0)
+	# Dynamic crosshair — wider = less accurate
+	var cross_size = clamp(spread * 600.0, 4.0, 40.0)
 	
 	var ch = get_tree().root.find_child("CrosshairH", true, false)
 	var cv = get_tree().root.find_child("CrosshairV", true, false)
