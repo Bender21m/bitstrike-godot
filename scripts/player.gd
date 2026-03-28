@@ -198,9 +198,11 @@ func _input(event):
 	if not mouse_captured:
 		return
 	
-	# Block mouse input while buy menu is open
+	# Block mouse input while menus are open
 	var buy_menu = get_tree().root.find_child("BuyMenu", true, false)
 	if buy_menu and buy_menu.is_open:
+		return
+	if has_node("/root/SettingsMenu") and $"/root/SettingsMenu".is_open:
 		return
 	
 	if event is InputEventMouseMotion:
@@ -240,6 +242,9 @@ func _input(event):
 				var bm = get_tree().root.find_child("BuyMenu", true, false)
 				if bm and bm.is_open:
 					bm.close_menu()
+					return
+				if has_node("/root/SettingsMenu"):
+					$"/root/SettingsMenu".toggle()
 					return
 				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 				mouse_captured = false
