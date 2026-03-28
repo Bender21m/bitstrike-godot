@@ -22,12 +22,35 @@ var weapons = [
 	{"name": "BEAGLE", "ammo": 7, "max_ammo": 7, "reserve": 35,
 	 "damage": 55, "fire_rate": 0.4, "recoil": 0.1},
 	{"name": "SABOT", "ammo": 5, "max_ammo": 5, "reserve": 20,
-	 "damage": 120, "fire_rate": 0.8, "recoil": 0.15}
+	 "damage": 120, "fire_rate": 0.8, "recoil": 0.15},
+	{"name": "M4-SAT", "ammo": 25, "max_ammo": 25, "reserve": 75,
+	 "damage": 28, "fire_rate": 0.09, "recoil": 0.05}
 ]
+
+var weapon_model_builder: Node3D
 
 func _ready():
 	add_to_group("player")
 	# Don't capture mouse here - wait for first click
+	
+	# Setup weapon model builder
+	var weapon_script = load("res://scripts/weapon_models.gd")
+	if weapon_script:
+		weapon_model_builder = Node3D.new()
+		weapon_model_builder.set_script(weapon_script)
+		weapon_model_builder.name = "WeaponModels"
+		# Attach to camera's weapon holder
+		var holder = find_child("WeaponHolder", true, false)
+		if holder:
+			# Remove old static weapon meshes
+			for child in holder.get_children():
+				if child is MeshInstance3D:
+					child.visible = false
+			holder.add_child(weapon_model_builder)
+		else:
+			camera.add_child(weapon_model_builder)
+		# Build initial weapon model
+		_update_weapon_model()
 
 func _input(event):
 	# Capture mouse on first click
@@ -63,6 +86,7 @@ func _input(event):
 			KEY_1: switch_weapon(0)
 			KEY_2: switch_weapon(1)
 			KEY_3: switch_weapon(2)
+			KEY_4: switch_weapon(3)
 			KEY_ESCAPE:
 				# Close buy menu first if open
 				var bm = get_tree().root.find_child("BuyMenu", true, false)
@@ -143,7 +167,14 @@ func reload_weapon():
 	w.reserve -= give
 
 func switch_weapon(idx: int):
+	if idx >= weapons.size():
+		return
 	current_weapon = idx
+	_update_weapon_model()
+
+func _update_weapon_model():
+	if weapon_model_builder and weapon_model_builder.has_method("build_weapon"):
+		weapon_model_builder.build_weapon(weapons[current_weapon].name)
 
 func take_damage(amount: int):
 	var dmg = amount

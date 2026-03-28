@@ -11,7 +11,8 @@ const BUY_PHASE_DURATION = 15.0  # seconds between rounds
 var weapons = [
 	{"name":"AK-B7","ammo":30,"max_ammo":30,"reserve":90,"damage":25,"fire_rate":0.1,"auto":true,"recoil":0.06,"price":2700},
 	{"name":"BEAGLE","ammo":7,"max_ammo":7,"reserve":35,"damage":55,"fire_rate":0.4,"auto":false,"recoil":0.1,"price":700},
-	{"name":"SABOT","ammo":5,"max_ammo":5,"reserve":20,"damage":120,"fire_rate":0.8,"auto":false,"recoil":0.15,"price":4750}
+	{"name":"SABOT","ammo":5,"max_ammo":5,"reserve":20,"damage":120,"fire_rate":0.8,"auto":false,"recoil":0.15,"price":4750},
+	{"name":"M4-SAT","ammo":25,"max_ammo":25,"reserve":75,"damage":28,"fire_rate":0.09,"auto":true,"recoil":0.05,"price":3100}
 ]
 
 func next_round():
