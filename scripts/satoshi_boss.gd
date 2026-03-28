@@ -375,6 +375,10 @@ func _start_death():
 		player.sats += sats_reward
 		player.kills += 1
 	
+	# Register kill streak
+	if has_node("/root/KillStreaks"):
+		$"/root/KillStreaks".register_kill()
+	
 	# Disable collision
 	for child in get_children():
 		if child is CollisionShape3D:
