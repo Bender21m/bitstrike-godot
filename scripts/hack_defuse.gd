@@ -243,6 +243,13 @@ func _end_round(winning_team: int, message: String):
 	
 	emit_signal("round_ended", winning_team)
 	
+	# Update match score
+	if has_node("/root/MatchSystem"):
+		if winning_team == Team.BITCOINERS:
+			$"/root/MatchSystem".bitcoiners_win_round()
+		else:
+			$"/root/MatchSystem".shitcoiners_win_round()
+	
 	# Start next round after delay
 	get_tree().create_timer(5.0).timeout.connect(_start_new_round)
 
