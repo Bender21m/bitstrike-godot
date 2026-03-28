@@ -51,7 +51,15 @@ var current_anim: String = ""
 # Jumping/airborne = basically useless
 # Spraying = gets progressively worse
 
+var knife_handler: Node  # Knife script instance
+
 var weapons = [
+	{"name": "KNIFE", "ammo": 1, "max_ammo": 1, "reserve": 0,
+	 "damage": 40, "fire_rate": 0.4, "auto": false,
+	 "recoil": 0.0, "recoil_h": 0.0,
+	 "spread_base": 0.0, "spread_move": 0.0, "spread_run": 0.0,
+	 "spread_jump": 0.0, "spread_crouch": 0.0, "spread_spray": 0.0,
+	 "reload_time": 0.0, "recoil_pattern": "ak", "is_knife": true},
 	{"name": "AK-B7", "ammo": 30, "max_ammo": 30, "reserve": 90,
 	 "damage": 25, "fire_rate": 0.1, "auto": true,
 	 "recoil": 0.09, "recoil_h": 0.035,
@@ -220,6 +228,12 @@ func _input(event):
 		if event.pressed:
 			shoot()  # First shot on click
 	
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+		# Right click: knife stab if knife equipped
+		var w = weapons[current_weapon]
+		if w.get("is_knife", false):
+			_knife_attack(true)
+	
 	if event is InputEventKey and event.pressed:
 		match event.keycode:
 			KEY_B:
@@ -228,10 +242,11 @@ func _input(event):
 					bm_toggle.toggle_menu()
 				return
 			KEY_R: reload_weapon()
-			KEY_1: switch_weapon(0)
-			KEY_2: switch_weapon(1)
-			KEY_3: switch_weapon(2)
-			KEY_4: switch_weapon(3)
+			KEY_1: switch_weapon(0)  # Knife
+			KEY_2: switch_weapon(1)  # AK-B7
+			KEY_3: switch_weapon(2)  # BEAGLE
+			KEY_4: switch_weapon(3)  # SABOT
+			KEY_5: switch_weapon(4)  # M4-SAT
 			KEY_C: pass  # Crouch is now hold-Shift
 			KEY_CTRL: pass  # Crouch is now hold-Shift
 			KEY_E: _interact_hack_site()
@@ -405,6 +420,12 @@ func shoot():
 	if is_reloading:
 		return
 	var w = weapons[current_weapon]
+	
+	# Knife attack
+	if w.get("is_knife", false):
+		_knife_attack(false)
+		return
+	
 	var now = Time.get_ticks_msec() / 1000.0
 	if w.ammo <= 0 or now - last_shot_time < w.fire_rate:
 		return
@@ -554,6 +575,34 @@ func _update_weapon_model():
 	if weapon_model_builder and weapon_model_builder.has_method("build_weapon"):
 		weapon_model_builder.build_weapon(weapons[current_weapon].name)
 
+func _knife_attack(is_stab: bool):
+	if not knife_handler:
+		var knife_script = load("res://scripts/knife.gd")
+		if knife_script:
+			knife_handler = Node.new()
+			knife_handler.set_script(knife_script)
+			add_child(knife_handler)
+	
+	if not knife_handler:
+		return
+	
+	var result
+	if is_stab:
+		result = knife_handler.try_stab(self)
+	else:
+		result = knife_handler.try_slash(self)
+	
+	if result.hit:
+		if has_node("/root/AudioManager"):
+			$"/root/AudioManager".play("hit")
+		if result.backstab:
+			add_kill_feed("BACKSTAB! 💀")
+		# Knife never runs out of ammo
+	else:
+		# Swing sound even on miss
+		if has_node("/root/AudioManager"):
+			$"/root/AudioManager".play("reload")  # Placeholder whoosh
+
 func _drop_current_weapon():
 	if has_node("/root/WeaponDrops"):
 		var w = weapons[current_weapon].duplicate()
@@ -610,6 +659,12 @@ func die():
 	# Track death
 	if has_node("/root/Scoreboard"):
 		$"/root/Scoreboard".register_death()
+	
+	# CS-style: lose current weapon's value on death
+	var w = weapons[current_weapon]
+	# Switch to knife on respawn (you keep knife always)
+	current_weapon = 0
+	
 	# Show death screen
 	var death_screen = get_tree().root.find_child("DeathScreen", true, false)
 	if death_screen and death_screen.has_method("show_death"):

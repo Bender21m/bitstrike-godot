@@ -11,15 +11,15 @@ var player: Node3D
 # Buy menu items with categories
 var categories = {
 	"RIFLES": [
-		{"name": "AK-B7", "price": 2700, "type": "weapon", "weapon_idx": 0,
+		{"name": "AK-B7", "price": 2700, "type": "weapon", "weapon_idx": 1,
 		 "desc": "Full-auto rifle. 30 rounds. 25 dmg.", "icon": "🔫"},
-		{"name": "M4-SAT", "price": 3100, "type": "weapon", "weapon_idx": 3,
+		{"name": "M4-SAT", "price": 3100, "type": "weapon", "weapon_idx": 4,
 		 "desc": "Full-auto carbine. 25 rounds. 28 dmg. Low recoil.", "icon": "🔫"},
-		{"name": "SABOT", "price": 4750, "type": "weapon", "weapon_idx": 2,
+		{"name": "SABOT", "price": 4750, "type": "weapon", "weapon_idx": 3,
 		 "desc": "Sniper. 5 rounds. 120 dmg.", "icon": "🎯"},
 	],
 	"PISTOLS": [
-		{"name": "BEAGLE", "price": 700, "type": "weapon", "weapon_idx": 1,
+		{"name": "BEAGLE", "price": 700, "type": "weapon", "weapon_idx": 2,
 		 "desc": "Pistol. 7 rounds. 55 dmg.", "icon": "🔫"},
 	],
 	"GEAR": [
@@ -374,10 +374,11 @@ func _on_buy_pressed(item: Dictionary):
 
 func _get_max_reserve(weapon_idx: int) -> int:
 	match weapon_idx:
-		0: return 90   # AK-B7
-		1: return 35   # BEAGLE
-		2: return 20   # SABOT
-		3: return 75   # M4-SAT
+		0: return 0    # KNIFE (no ammo)
+		1: return 90   # AK-B7
+		2: return 35   # BEAGLE
+		3: return 20   # SABOT
+		4: return 75   # M4-SAT
 	return 90
 
 func _show_purchase_feedback(item_name: String):
