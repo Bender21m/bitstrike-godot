@@ -275,8 +275,12 @@ func _physics_process(delta):
 	
 	# Determine speed — Shift = crouch (CS 1.6 style)
 	is_crouching = Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_CTRL)
-	is_sprinting = false  # No sprint key — use scroll/movement like CS
+	is_sprinting = false
 	var spd = SPEED
+	# Knife out = run faster (CS tradition: 250 units vs 215)
+	var w = weapons[current_weapon]
+	if w.get("is_knife", false):
+		spd = SPEED * 1.16  # ~250/215 ratio from CS
 	if is_crouching:
 		spd = CROUCH_SPEED
 	
