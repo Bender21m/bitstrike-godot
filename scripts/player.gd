@@ -231,6 +231,11 @@ func _input(event):
 			KEY_C: toggle_crouch()
 			KEY_CTRL: toggle_crouch()
 			KEY_E: _interact_hack_site()
+			KEY_G:
+				if has_node("/root/Grenades"):
+					$"/root/Grenades".throw_grenade()
+			KEY_Q:
+				_drop_current_weapon()
 			KEY_ESCAPE:
 				var bm = get_tree().root.find_child("BuyMenu", true, false)
 				if bm and bm.is_open:
@@ -527,6 +532,12 @@ func switch_weapon(idx: int):
 func _update_weapon_model():
 	if weapon_model_builder and weapon_model_builder.has_method("build_weapon"):
 		weapon_model_builder.build_weapon(weapons[current_weapon].name)
+
+func _drop_current_weapon():
+	if has_node("/root/WeaponDrops"):
+		var w = weapons[current_weapon].duplicate()
+		$"/root/WeaponDrops".drop_weapon(self, w)
+		add_kill_feed("Dropped %s" % w.name)
 
 func _interact_hack_site():
 	if not has_node("/root/HackDefuse"):

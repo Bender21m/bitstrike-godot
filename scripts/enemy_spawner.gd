@@ -113,6 +113,13 @@ func spawn_wave(count: int):
 		var enemy = create_enemy(type, pos)
 		add_child(enemy)
 		enemies.append(enemy)
+		
+		# First enemy of round 3+ becomes the bomb carrier
+		if not carrier_spawned and round_num >= 3 and i == 0:
+			if has_node("/root/HackDefuse"):
+				carrier_spawned = true
+				var site = "A" if randf() > 0.5 else "B"
+				enemy.call_deferred("set_as_carrier", site)
 
 func find_spawn_pos() -> Vector3:
 	for _attempt in range(50):

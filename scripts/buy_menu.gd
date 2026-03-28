@@ -34,9 +34,19 @@ var categories = {
 		{"name": "Full Ammo Pack", "price": 1200, "type": "ammo_all",
 		 "desc": "Refill ALL weapon reserves.", "icon": "📦"},
 	],
+	"GRENADES": [
+		{"name": "Flashbang", "price": 200, "type": "grenade", "grenade_type": 0,
+		 "desc": "Blinds enemies (and you if you look). CS classic.", "icon": "💥"},
+		{"name": "BCash Grenade", "price": 300, "type": "grenade", "grenade_type": 1,
+		 "desc": "Explosive. 80 dmg at center. Roger's revenge.", "icon": "💣"},
+		{"name": "Smoke Grenade", "price": 300, "type": "grenade", "grenade_type": 2,
+		 "desc": "Visual cover for 15 seconds.", "icon": "💨"},
+	],
 	"UTILITY": [
 		{"name": "Health Kit", "price": 800, "type": "health", "heal_amount": 50,
 		 "desc": "Restore 50 HP.", "icon": "💊"},
+		{"name": "Hardware Wallet", "price": 400, "type": "defuse_kit",
+		 "desc": "Defuse 51% attacks in 2.5s instead of 5s.", "icon": "🔑"},
 	],
 }
 
@@ -343,6 +353,11 @@ func _on_buy_pressed(item: Dictionary):
 				player.weapons[i].reserve = _get_max_reserve(i)
 		"health":
 			player.health = min(100, player.health + item.heal_amount)
+		"grenade":
+			if has_node("/root/Grenades"):
+				$"/root/Grenades".add_grenade(item.grenade_type)
+		"defuse_kit":
+			player.set_meta("has_defuse_kit", true)
 	
 	# Play buy sound
 	if has_node("/root/AudioManager"):

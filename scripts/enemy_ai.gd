@@ -10,9 +10,15 @@ var sats_reward: int = 5000
 var accuracy: float = 0.6
 
 # --- AI State Machine ---
-enum State { IDLE, PATROL, CHASE, ATTACK, COVER, FLANK, FLINCH, DYING, DEAD }
+enum State { IDLE, PATROL, CHASE, ATTACK, COVER, FLANK, FLINCH, DYING, DEAD, PLANTING }
 var state: int = State.PATROL
 var previous_state: int = State.IDLE
+
+# --- Bomb Carrier ---
+var is_carrier: bool = false
+var target_site: String = ""
+var plant_progress: float = 0.0
+var plant_time: float = 3.0
 
 # --- References ---
 var player: Node3D
@@ -150,6 +156,12 @@ func _physics_process(delta):
 			_state_cover(delta)
 		State.FLANK:
 			_state_flank(delta)
+		State.PLANTING:
+			_state_planting(delta)
+	
+	# Carrier AI: if no one is engaging me, head to site
+	if is_carrier and state in [State.PATROL, State.IDLE] and not _can_see_player():
+		_carrier_move_to_site(delta)
 	
 	# Animation (procedural)
 	_animate(delta)
@@ -342,6 +354,81 @@ func _state_flank(delta):
 		_switch_state(State.ATTACK)
 
 # --- COMBAT ---
+
+# --- CARRIER / PLANTING ---
+
+func set_as_carrier(site: String):
+	is_carrier = true
+	target_site = site
+	# Visual indicator — make carrier glow red
+	var glow = OmniLight3D.new()
+	glow.name = "CarrierGlow"
+	glow.light_color = Color(1, 0.2, 0.1)
+	glow.light_energy = 0.4
+	glow.omni_range = 2.5
+	glow.position.y = 1.0
+	add_child(glow)
+
+func _carrier_move_to_site(delta):
+	if not has_node("/root/HackDefuse"):
+		return
+	var hd = $"/root/HackDefuse"
+	if hd.device_planted or hd.round_state != 1:  # Only during ACTIVE
+		return
+	
+	var site_data = hd.hack_sites.get(target_site, null)
+	if not site_data:
+		return
+	
+	var target_pos = site_data.position
+	var dir = (target_pos - global_position)
+	dir.y = 0
+	var dist = dir.length()
+	
+	if dist < 1.5:
+		# At the site — start planting
+		_switch_state(State.PLANTING)
+		return
+	
+	# Move toward site
+	var spd = move_speed * 0.8
+	if limping:
+		spd *= 0.6
+	velocity.x = dir.normalized().x * spd
+	velocity.z = dir.normalized().z * spd
+	is_moving = true
+	_face_direction(dir.normalized())
+
+func _state_planting(delta):
+	# Stand still and plant
+	velocity.x = 0
+	velocity.z = 0
+	is_moving = false
+	
+	plant_progress += delta
+	
+	# If player gets close, stop planting and fight
+	if player and is_instance_valid(player):
+		var dist = global_position.distance_to(player.global_position)
+		if dist < 8.0 and _can_see_player():
+			plant_progress = 0.0
+			_switch_state(State.ATTACK)
+			return
+	
+	if plant_progress >= plant_time:
+		# Successfully planted!
+		if has_node("/root/HackDefuse"):
+			var hd = $"/root/HackDefuse"
+			hd.try_plant(target_site)
+			# After planting, become a regular fighter
+			is_carrier = false
+			plant_progress = 0.0
+			_switch_state(State.PATROL)
+		
+		# Notify kill feed
+		var p = get_tree().get_first_node_in_group("player")
+		if p and p.has_method("add_kill_feed"):
+			p.add_kill_feed("⚠ ENEMY PLANTED AT SITE %s!" % target_site)
 
 func _fire_at_player():
 	if not player:
