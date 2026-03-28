@@ -417,7 +417,7 @@ func toggle_crouch():
 	is_crouching = not is_crouching
 
 func shoot():
-	if is_reloading:
+	if is_reloading or is_switching:
 		return
 	var w = weapons[current_weapon]
 	
@@ -557,14 +557,43 @@ func _finish_reload():
 	w.reserve -= give
 	shots_fired = 0
 
+var switch_anim_timer: float = 0.0
+var is_switching: bool = false
+
 func switch_weapon(idx: int):
-	if idx >= weapons.size():
+	if idx >= weapons.size() or idx == current_weapon:
 		return
 	if is_reloading:
 		is_reloading = false  # Cancel reload on weapon switch
-	current_weapon = idx
-	shots_fired = 0
-	_update_weapon_model()
+	if is_switching:
+		return
+	
+	# Start weapon switch animation
+	is_switching = true
+	switch_anim_timer = 0.0
+	
+	# Lower weapon first, then swap, then raise
+	var holder = find_child("WeaponHolder", true, false)
+	if holder:
+		var tween = get_tree().create_tween()
+		# Lower
+		tween.tween_property(holder, "position:y", -0.15, 0.15)
+		# Swap at bottom
+		tween.tween_callback(func():
+			current_weapon = idx
+			shots_fired = 0
+			_update_weapon_model()
+		)
+		# Raise
+		tween.tween_property(holder, "position:y", 0.0, 0.15)
+		tween.tween_callback(func():
+			is_switching = false
+		)
+	else:
+		current_weapon = idx
+		shots_fired = 0
+		_update_weapon_model()
+		is_switching = false
 	
 	# Play draw animation
 	if fps_anim_player and fps_anim_player.has_animation("Rig|AK_Draw"):
