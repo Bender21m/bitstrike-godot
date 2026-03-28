@@ -74,6 +74,23 @@ func _draw_radar():
 	# Draw player (center, green triangle)
 	_draw_triangle(radar_canvas, radar_center, 4, -player_rot, Color(0, 1, 0))
 	
+	# Draw hack sites
+	if has_node("/root/HackDefuse"):
+		var hd = $"/root/HackDefuse"
+		for site_id in hd.hack_sites:
+			var site = hd.hack_sites[site_id]
+			var offset = site.position - player_pos
+			var rotated = Vector2(offset.x, offset.z).rotated(-player_rot)
+			var radar_pos = radar_center + rotated * (radar_size / 2.0 / radar_range)
+			radar_pos.x = clamp(radar_pos.x, 6, radar_size - 6)
+			radar_pos.y = clamp(radar_pos.y, 6, radar_size - 6)
+			var site_color = Color(1, 0.3, 0.1) if site_id == "A" else Color(0.1, 0.5, 1)
+			if site.planted:
+				# Pulse if planted
+				var pulse = 0.5 + sin(Time.get_ticks_msec() * 0.01) * 0.5
+				site_color.a = pulse
+			radar_canvas.draw_rect(Rect2(radar_pos - Vector2(4, 4), Vector2(8, 8)), site_color)
+	
 	# Draw enemies
 	for enemy in get_tree().get_nodes_in_group("enemies"):
 		if not is_instance_valid(enemy):
