@@ -64,3 +64,4 @@ environment/defaults/default_clear_color=Color(0.05, 0.05, 0.08, 1)
 AudioManager="*res://scripts/audio_manager.gd"
 GameState="*res://scripts/game_state.gd"
 BuyMenu="*res://scripts/buy_menu.gd"
+CharacterSystem="*res://scripts/character_system.gd"

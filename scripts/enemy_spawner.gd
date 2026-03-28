@@ -64,6 +64,8 @@ var enemies: Array = []
 var round_num: int = 1
 var player: Node3D
 var ai_script = preload("res://scripts/enemy_ai.gd")
+var satoshi_script = preload("res://scripts/satoshi_boss.gd")
+var satoshi_spawned_this_round: bool = false
 
 func _ready():
 	player = get_tree().get_first_node_in_group("player")
@@ -75,7 +77,12 @@ func spawn_wave(count: int):
 		if is_instance_valid(e):
 			e.queue_free()
 	enemies.clear()
+	satoshi_spawned_this_round = false
 	update_round_label()
+	
+	# Chance to spawn Satoshi after round 5
+	if round_num >= 5 and randf() < 0.03 * (round_num - 4):
+		_spawn_satoshi()
 	
 	# Gradual type introduction
 	var types = ["banker"]
@@ -388,6 +395,19 @@ func _get_wave_count(rnd: int) -> int:
 	# Gentler ramp: R1=3, R2=4, R3=5, R4=6, R5=7, then +1 per round
 	# Caps at 15 to keep it playable
 	return min(2 + rnd, 15)
+
+func _spawn_satoshi():
+	if satoshi_spawned_this_round:
+		return
+	satoshi_spawned_this_round = true
+	
+	var pos = find_spawn_pos()
+	var satoshi = CharacterBody3D.new()
+	satoshi.name = "Satoshi_Nakamoto"
+	satoshi.position = pos
+	satoshi.set_script(satoshi_script)
+	add_child(satoshi)
+	enemies.append(satoshi)
 
 func _show_round_clear(bonus: int):
 	var p = get_tree().get_first_node_in_group("player")
