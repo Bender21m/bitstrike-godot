@@ -525,6 +525,18 @@ func update_hud():
 	var wl = get_tree().root.find_child("WeaponLabel", true, false)
 	if wl: wl.text = w.name
 	
+	# Stance indicator
+	var stance = get_tree().root.find_child("StanceLabel", true, false)
+	if stance:
+		if is_crouching:
+			stance.text = "CROUCHING"
+		elif is_sprinting:
+			stance.text = "SPRINTING"
+		elif is_reloading:
+			stance.text = "RELOADING..."
+		else:
+			stance.text = ""
+	
 	# Crosshair spread indicator
 	_update_crosshair()
 

@@ -169,6 +169,15 @@ theme_override_font_sizes/font_size = 24
 theme_override_colors/font_color = Color(0, 1, 0, 1)
 text = "HP: 100"
 
+[node name="ArmorLabel" type="Label" parent="HUD"]
+offset_left = 120.0
+offset_top = 20.0
+offset_right = 250.0
+offset_bottom = 50.0
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.3, 0.6, 1.0, 1)
+text = ""
+
 [node name="SatsLabel" type="Label" parent="HUD"]
 offset_left = 20.0
 offset_top = 55.0
@@ -229,6 +238,22 @@ offset_top = 10.0
 offset_right = -10.0
 offset_bottom = 200.0
 grow_horizontal = 0
+
+[node name="StanceLabel" type="Label" parent="HUD"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -60.0
+offset_top = -35.0
+offset_right = 60.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 0.7)
+horizontal_alignment = 1
+text = ""
 
 [node name="DamageOverlay" type="ColorRect" parent="HUD"]
 anchors_preset = 15
