@@ -173,9 +173,12 @@ func _physics_process(delta):
 func _state_idle(delta):
 	velocity.x = 0
 	velocity.z = 0
+	is_moving = false
 	if _can_see_player():
-		_switch_state(State.CHASE)
-	elif state_timer > 3.0:
+		# Reaction delay — don't instantly aggro (0.3-0.8s delay)
+		if state_timer > randf_range(0.3, 0.8):
+			_switch_state(State.CHASE)
+	elif state_timer > randf_range(2.0, 5.0):
 		_switch_state(State.PATROL)
 
 func _state_patrol(delta):
@@ -197,8 +200,8 @@ func _state_patrol(delta):
 	is_moving = true
 	_face_direction(dir.normalized())
 	
-	# Detect player during patrol
-	if _can_see_player():
+	# Detect player during patrol — slight reaction delay
+	if _can_see_player() and state_timer > 0.5:
 		_switch_state(State.CHASE)
 
 func _state_chase(delta):
@@ -213,16 +216,18 @@ func _state_chase(delta):
 	
 	_face_direction(dir)
 	
-	# Close enough to attack?
+	# Close enough to attack? Need to see player AND be in range for a moment
 	if can_shoot and dist < attack_range and _can_see_player():
-		_switch_state(State.ATTACK)
+		# Don't instantly attack — pause briefly to "aim"
+		if state_timer > 0.4:
+			_switch_state(State.ATTACK)
 		return
 	elif not can_shoot and dist < melee_range:
 		_switch_state(State.ATTACK)
 		return
 	
 	# Lost sight for too long?
-	if last_seen_player > 5.0:
+	if last_seen_player > 4.0:
 		_switch_state(State.PATROL)
 		return
 	
@@ -270,15 +275,17 @@ func _state_attack(delta):
 		is_moving = true
 	
 	if can_shoot:
-		# Ranged attack
+		# Ranged attack — with proper LOS check and realistic timing
 		if attack_cooldown <= 0 and _can_see_player():
 			_fire_at_player()
 			bullets_fired += 1
-			attack_cooldown = 0.15 + randf() * 0.1  # Burst fire rate
+			attack_cooldown = 0.25 + randf() * 0.2  # Slower burst fire
 			
 			if bullets_fired >= burst_count:
 				bullets_fired = 0
-				attack_cooldown = 0.8 + randf() * 0.5  # Pause between bursts
+				# Longer pause between bursts — gives player time to react
+				attack_cooldown = 1.2 + randf() * 1.0
+				
 				
 				# Chance to take cover after burst
 				if randf() < 0.3 and health < max_health * 0.6:
@@ -434,13 +441,25 @@ func _fire_at_player():
 	if not player:
 		return
 	
-	# Accuracy check with distance falloff
-	var dist = global_position.distance_to(player.global_position)
-	var hit_chance = accuracy * (1.0 - dist / (attack_range * 2.0))
-	hit_chance = clamp(hit_chance, 0.1, 0.9)
+	# Must have LOS to actually hit
+	if not _can_see_player():
+		return
 	
-	# Wounded enemies less accurate
+	# Accuracy with steep distance falloff — harder to hit at range
+	var dist = global_position.distance_to(player.global_position)
+	var hit_chance = accuracy * (1.0 - dist / (attack_range * 1.5))
+	hit_chance = clamp(hit_chance, 0.05, 0.7)  # Max 70% hit chance (was 90%)
+	
+	# Wounded enemies much less accurate
 	if wound_count > 0:
+		hit_chance *= 0.5
+	
+	# Moving enemies are less accurate
+	if is_moving:
+		hit_chance *= 0.6
+	
+	# First shot of burst is less accurate (reaction time)
+	if bullets_fired == 0:
 		hit_chance *= 0.7
 	
 	if randf() < hit_chance:
@@ -472,8 +491,32 @@ func _can_see_player() -> bool:
 	var dist = global_position.distance_to(player.global_position)
 	if dist > detection_range:
 		return false
-	# Basic LOS — in future use raycasts for wall checks
-	return true
+	
+	# Proper line-of-sight check using raycast — no more shooting through walls
+	var space_state = get_world_3d().direct_space_state
+	if not space_state:
+		return false
+	
+	var from = global_position + Vector3(0, 1.2, 0)  # Eye height
+	var to = player.global_position + Vector3(0, 0.8, 0)  # Player center mass
+	
+	var query = PhysicsRayQueryParameters3D.create(from, to)
+	query.exclude = [get_rid()]  # Don't hit self
+	query.collision_mask = 1  # Only check against world geometry (layer 1)
+	
+	var result = space_state.intersect_ray(query)
+	
+	if result.is_empty():
+		# Nothing blocking — can see player
+		return true
+	
+	# Check if what we hit is the player (or player's collision)
+	var hit = result.get("collider", null)
+	if hit and hit.is_in_group("player"):
+		return true
+	
+	# Hit a wall or object — can't see player
+	return false
 
 # --- DAMAGE & WOUNDS ---
 
