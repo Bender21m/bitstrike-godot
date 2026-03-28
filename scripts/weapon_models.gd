@@ -225,7 +225,7 @@ func _build_ak_b7() -> Node3D:
 	_add_box(gun, Vector3(0.02, 0.015, 0.0), Vector3(0.008, 0.006, 0.012), metal_mid, 0.8, 0.3)
 	
 	# Position for first-person view
-	gun.position = Vector3(0.15, -0.12, -0.3)
+	gun.position = Vector3(0, 0, 0)
 	gun.rotation.y = 0.0
 	
 	return gun
@@ -286,7 +286,7 @@ func _build_beagle() -> Node3D:
 	# Bitcoin engraving on slide
 	_add_box(gun, Vector3(0.015, 0.015, -0.02), Vector3(0.001, 0.012, 0.012), orange_btc, 0.3, 0.6)
 	
-	gun.position = Vector3(0.12, -0.1, -0.25)
+	gun.position = Vector3(0, 0, 0)
 	
 	return gun
 
@@ -363,7 +363,7 @@ func _build_sabot() -> Node3D:
 	# Bitcoin accent
 	_add_box(gun, Vector3(0.016, 0, 0.15), Vector3(0.001, 0.015, 0.015), orange_btc, 0.3, 0.6)
 	
-	gun.position = Vector3(0.15, -0.12, -0.3)
+	gun.position = Vector3(0, 0, 0)
 	
 	return gun
 
@@ -479,7 +479,7 @@ func _build_m4_sat() -> Node3D:
 	# --- SELECTOR SWITCH ---
 	_add_box(gun, Vector3(0.016, -0.01, 0.06), Vector3(0.003, 0.005, 0.012), metal_mid, 0.85, 0.25)
 	
-	gun.position = Vector3(0.15, -0.12, -0.3)
+	gun.position = Vector3(0, 0, 0)
 	
 	return gun
 
@@ -516,7 +516,7 @@ func _build_knife_model() -> Node3D:
 	# Bitcoin logo on blade
 	_add_box(knife, Vector3(0.006, 0.005, -0.16), Vector3(0.001, 0.012, 0.012), orange_btc, 0.3, 0.6)
 	
-	knife.position = Vector3(0.2, -0.15, -0.2)
+	knife.position = Vector3(0.05, 0.02, -0.05)
 	return knife
 
 # ============================================================
