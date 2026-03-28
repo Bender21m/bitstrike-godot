@@ -632,6 +632,10 @@ func _start_death():
 	if has_node("/root/Scoreboard"):
 		$"/root/Scoreboard".register_kill(false)
 	
+	# Show sats popup
+	if has_node("/root/SatsPopup"):
+		$"/root/SatsPopup".show_sats(sats_reward, enemy_type.to_upper())
+	
 	# Disable collision
 	for child in get_children():
 		if child is CollisionShape3D:

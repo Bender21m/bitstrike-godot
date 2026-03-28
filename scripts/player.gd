@@ -526,9 +526,13 @@ func shoot():
 					add_kill_feed("HEADSHOT!")
 					if has_node("/root/AudioManager"):
 						$"/root/AudioManager".play("headshot")
+					if has_node("/root/Scoreboard"):
+						$"/root/Scoreboard".register_kill(true)
+					_flash_crosshair(Color(1, 0, 0))
 				else:
 					if has_node("/root/AudioManager"):
 						$"/root/AudioManager".play("hit")
+					_flash_crosshair(Color(1, 1, 1))
 		
 		# Reset raycast
 		raycast.target_position = Vector3(0, 0, -100)
@@ -750,6 +754,19 @@ func update_hud():
 	
 	# Crosshair spread indicator
 	_update_crosshair()
+
+func _flash_crosshair(color: Color):
+	var ch = get_tree().root.find_child("CrosshairH", true, false)
+	var cv = get_tree().root.find_child("CrosshairV", true, false)
+	if ch and cv:
+		var original_h = ch.color
+		var original_v = cv.color
+		ch.color = color
+		cv.color = color
+		get_tree().create_timer(0.15).timeout.connect(func():
+			if is_instance_valid(ch): ch.color = original_h
+			if is_instance_valid(cv): cv.color = original_v
+		)
 
 func _update_crosshair():
 	var w = weapons[current_weapon]
