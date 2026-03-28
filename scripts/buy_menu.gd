@@ -346,7 +346,7 @@ func _on_buy_pressed(item: Dictionary):
 	
 	# Play buy sound
 	if has_node("/root/AudioManager"):
-		$"/root/AudioManager".play("reload")
+		$"/root/AudioManager".play("buy")
 	
 	# Show purchase feedback
 	_show_purchase_feedback(item.name)

@@ -67,7 +67,8 @@ var ai_script = preload("res://scripts/enemy_ai.gd")
 
 func _ready():
 	player = get_tree().get_first_node_in_group("player")
-	spawn_wave(5)
+	# Round 1 starts gentler
+	spawn_wave(3)
 
 func spawn_wave(count: int):
 	for e in enemies:
@@ -76,8 +77,15 @@ func spawn_wave(count: int):
 	enemies.clear()
 	update_round_label()
 	
-	var types = ["banker", "shitcoiner", "bear", "roger"]
+	# Gradual type introduction
+	var types = ["banker"]
+	if round_num >= 2:
+		types.append("shitcoiner")
 	if round_num >= 3:
+		types.append("bear")
+	if round_num >= 4:
+		types.append("roger")
+	if round_num >= 5:
 		types.append("whale")
 	
 	for i in range(count):
@@ -96,7 +104,7 @@ func find_spawn_pos() -> Vector3:
 		var z = randi_range(2, 21)
 		if map_data[z * 24 + x] == 0:
 			var pos = Vector3(x + 0.5, 0, z + 0.5)
-			if player and pos.distance_to(player.global_position) > 6:
+			if player and pos.distance_to(player.global_position) > 10:
 				return pos
 	return Vector3(20, 0, 20)
 
@@ -346,7 +354,11 @@ func _physics_process(_delta):
 	if waiting_for_buy_phase and gs and not gs.buy_phase:
 		waiting_for_buy_phase = false
 		round_cleared = false
-		spawn_wave(4 + round_num * 2)
+		var count = _get_wave_count(round_num)
+		spawn_wave(count)
+		# Play round start sound
+		if has_node("/root/AudioManager"):
+			$"/root/AudioManager".play("round_start")
 		return
 	
 	var alive_count = 0
@@ -369,8 +381,13 @@ func _physics_process(_delta):
 			if gs:
 				gs.next_round()
 			else:
-				spawn_wave(4 + round_num * 2)
+				spawn_wave(_get_wave_count(round_num))
 		)
+
+func _get_wave_count(rnd: int) -> int:
+	# Gentler ramp: R1=3, R2=4, R3=5, R4=6, R5=7, then +1 per round
+	# Caps at 15 to keep it playable
+	return min(2 + rnd, 15)
 
 func _show_round_clear(bonus: int):
 	var p = get_tree().get_first_node_in_group("player")
