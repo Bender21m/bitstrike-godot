@@ -660,6 +660,8 @@ func _physics_process_hack_interaction():
 			if vel_h > 0.5:
 				hd.cancel_defuse()
 
+var last_attacker_pos: Vector3 = Vector3.ZERO
+
 func take_damage(amount: int, attacker_pos: Vector3 = Vector3.ZERO):
 	var dmg = amount
 	if armor > 0:
@@ -676,8 +678,17 @@ func take_damage(amount: int, attacker_pos: Vector3 = Vector3.ZERO):
 			if is_instance_valid(overlay): overlay.color = Color(1, 0, 0, 0))
 	
 	# Damage direction indicator
-	if attacker_pos != Vector3.ZERO and has_node("/root/DamageIndicator"):
-		$"/root/DamageIndicator".show_damage_from(attacker_pos)
+	if attacker_pos != Vector3.ZERO:
+		last_attacker_pos = attacker_pos
+		if has_node("/root/DamageIndicator"):
+			$"/root/DamageIndicator".show_damage_from(attacker_pos)
+	# Low health persistent red overlay
+	if health <= 30 and health > 0:
+		var low_hp_overlay = get_tree().root.find_child("DamageOverlay", true, false)
+		if low_hp_overlay:
+			var pulse = sin(Time.get_ticks_msec() * 0.005) * 0.05
+			low_hp_overlay.color = Color(1, 0, 0, 0.1 + pulse)
+	
 	if health <= 0:
 		die()
 
@@ -719,13 +730,26 @@ func add_kill_feed(text: String):
 func update_hud():
 	var w = weapons[current_weapon]
 	var hp = get_tree().root.find_child("HealthLabel", true, false)
-	if hp: hp.text = "HP: %d" % health
+	if hp:
+		hp.text = "HP: %d" % health
+		if health <= 25:
+			hp.add_theme_color_override("font_color", Color(1, 0.1, 0.1))
+		elif health <= 50:
+			hp.add_theme_color_override("font_color", Color(1, 0.7, 0))
+		else:
+			hp.add_theme_color_override("font_color", Color(0, 1, 0))
 	var ar = get_tree().root.find_child("ArmorLabel", true, false)
 	if ar: ar.text = "🛡 %d" % armor if armor > 0 else ""
 	var sl = get_tree().root.find_child("SatsLabel", true, false)
 	if sl: sl.text = "₿ %s" % str(sats)
 	var al = get_tree().root.find_child("AmmoLabel", true, false)
-	if al: al.text = "%d / %d" % [w.ammo, w.reserve]
+	if al:
+		al.text = "%d / %d" % [w.ammo, w.reserve]
+		# Low ammo warning (flash red when < 25%)
+		if w.max_ammo > 0 and float(w.ammo) / w.max_ammo < 0.25:
+			al.add_theme_color_override("font_color", Color(1, 0.2, 0.1))
+		else:
+			al.add_theme_color_override("font_color", Color(1, 1, 1))
 	var wl = get_tree().root.find_child("WeaponLabel", true, false)
 	if wl: wl.text = w.name
 	
