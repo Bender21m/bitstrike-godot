@@ -66,36 +66,45 @@ func _generate_sounds():
 # Layered: sharp transient + low body + filtered noise tail
 # ============================================================
 func _make_gunshot_rifle() -> AudioStreamWAV:
-	var duration = 0.25
+	var duration = 0.35
 	var samples = int(duration * sample_rate)
 	var data = PackedByteArray()
 	data.resize(samples * 2)
 	
 	for i in range(samples):
 		var t = float(i) / sample_rate
-		var env_t = float(i) / samples
 		
-		# Sharp attack transient (first 5ms)
-		var transient = 0.0
-		if t < 0.005:
-			transient = (1.0 - t / 0.005) * randf_range(-1.0, 1.0) * 0.9
+		# Layer 1: CRACK — sharp initial transient (first 2ms)
+		var crack = 0.0
+		if t < 0.002:
+			crack = randf_range(-1.0, 1.0) * (1.0 - t / 0.002)
 		
-		# Low frequency body (thump)
-		var body_env = exp(-t * 30.0)
-		var body = sin(t * TAU * 80) * body_env * 0.6
-		body += sin(t * TAU * 120) * body_env * 0.3
+		# Layer 2: BANG — main body, low freq punch
+		var bang_env = exp(-t * 25.0)
+		var bang = sin(t * TAU * 65) * bang_env * 0.7
+		bang += sin(t * TAU * 130) * bang_env * 0.4
+		bang += sin(t * TAU * 95) * bang_env * 0.3
 		
-		# Mid crack
-		var crack_env = exp(-t * 50.0)
-		var crack = sin(t * TAU * 800 + sin(t * TAU * 200) * 2.0) * crack_env * 0.3
+		# Layer 3: SNAP — mid frequency bite (what makes it sound "sharp")
+		var snap_env = exp(-t * 60.0)
+		var snap = sin(t * TAU * 1200 + sin(t * TAU * 300) * 3.0) * snap_env * 0.35
+		snap += sin(t * TAU * 2400) * snap_env * 0.15
 		
-		# Noise tail (filtered)
-		var noise_env = exp(-t * 15.0) * 0.25
-		var noise = 0.0
-		if env_t < 0.8:
-			noise = randf_range(-1.0, 1.0) * noise_env
+		# Layer 4: MECHANICAL — bolt/action sound (metallic ring)
+		var mech = 0.0
+		if t > 0.01 and t < 0.08:
+			var mt = t - 0.01
+			mech = sin(mt * TAU * 3500) * exp(-mt * 50.0) * 0.12
+			mech += sin(mt * TAU * 5000) * exp(-mt * 70.0) * 0.08
 		
-		var sample = clamp(transient + body + crack + noise, -1.0, 1.0)
+		# Layer 5: TAIL — room reverb / echo
+		var tail_env = exp(-t * 8.0) * 0.2
+		var tail = randf_range(-1.0, 1.0) * tail_env
+		# Simple echo at ~100ms
+		if t > 0.1:
+			tail += sin((t - 0.1) * TAU * 70) * exp(-(t - 0.1) * 12.0) * 0.1
+		
+		var sample = clamp(crack + bang + snap + mech + tail, -1.0, 1.0)
 		var val = int(sample * 32767)
 		data[i * 2] = val & 0xFF
 		data[i * 2 + 1] = (val >> 8) & 0xFF
@@ -106,7 +115,7 @@ func _make_gunshot_rifle() -> AudioStreamWAV:
 # GUNSHOT — PISTOL (snappier, higher freq)
 # ============================================================
 func _make_gunshot_pistol() -> AudioStreamWAV:
-	var duration = 0.15
+	var duration = 0.2
 	var samples = int(duration * sample_rate)
 	var data = PackedByteArray()
 	data.resize(samples * 2)
@@ -114,23 +123,31 @@ func _make_gunshot_pistol() -> AudioStreamWAV:
 	for i in range(samples):
 		var t = float(i) / sample_rate
 		
-		# Sharp snap
-		var snap = 0.0
-		if t < 0.003:
-			snap = (1.0 - t / 0.003) * randf_range(-1.0, 1.0) * 0.95
+		# Sharp initial crack
+		var crack = 0.0
+		if t < 0.0015:
+			crack = randf_range(-1.0, 1.0) * (1.0 - t / 0.0015)
 		
-		# Higher body
-		var body_env = exp(-t * 45.0)
-		var body = sin(t * TAU * 150) * body_env * 0.5
-		body += sin(t * TAU * 300) * body_env * 0.3
+		# Punchy mid-body (pistol = higher freq than rifle)
+		var body_env = exp(-t * 40.0)
+		var body = sin(t * TAU * 180) * body_env * 0.6
+		body += sin(t * TAU * 360) * body_env * 0.3
 		
-		# Short crack
-		var crack = sin(t * TAU * 1200) * exp(-t * 80.0) * 0.25
+		# Snappy high-end
+		var snap_env = exp(-t * 80.0)
+		var snap = sin(t * TAU * 1800) * snap_env * 0.3
+		snap += sin(t * TAU * 3200) * snap_env * 0.15
 		
-		# Very short noise
-		var noise = randf_range(-1.0, 1.0) * exp(-t * 40.0) * 0.15
+		# Slide racking (metallic)
+		var slide = 0.0
+		if t > 0.02 and t < 0.06:
+			var st = t - 0.02
+			slide = sin(st * TAU * 4500) * exp(-st * 60.0) * 0.1
 		
-		var sample = clamp(snap + body + crack + noise, -1.0, 1.0)
+		# Short reverb
+		var tail = randf_range(-1.0, 1.0) * exp(-t * 20.0) * 0.1
+		
+		var sample = clamp(crack + body + snap + slide + tail, -1.0, 1.0)
 		var val = int(sample * 32767)
 		data[i * 2] = val & 0xFF
 		data[i * 2 + 1] = (val >> 8) & 0xFF
@@ -141,7 +158,7 @@ func _make_gunshot_pistol() -> AudioStreamWAV:
 # GUNSHOT — SNIPER (big boom, long reverb tail)
 # ============================================================
 func _make_gunshot_sniper() -> AudioStreamWAV:
-	var duration = 0.5
+	var duration = 0.6
 	var samples = int(duration * sample_rate)
 	var data = PackedByteArray()
 	data.resize(samples * 2)
@@ -149,28 +166,41 @@ func _make_gunshot_sniper() -> AudioStreamWAV:
 	for i in range(samples):
 		var t = float(i) / sample_rate
 		
-		# Massive transient
-		var transient = 0.0
-		if t < 0.008:
-			transient = (1.0 - t / 0.008) * randf_range(-1.0, 1.0) * 1.0
+		# Massive transient crack
+		var crack = 0.0
+		if t < 0.003:
+			crack = randf_range(-1.0, 1.0) * (1.0 - t / 0.003)
 		
-		# Deep body
-		var body_env = exp(-t * 12.0)
-		var body = sin(t * TAU * 50) * body_env * 0.7
-		body += sin(t * TAU * 85) * body_env * 0.4
+		# Deep thunderous body
+		var body_env = exp(-t * 10.0)
+		var body = sin(t * TAU * 45) * body_env * 0.8
+		body += sin(t * TAU * 90) * body_env * 0.5
+		body += sin(t * TAU * 135) * body_env * 0.25
 		
-		# Supersonic crack
-		var crack_env = exp(-t * 35.0)
-		var crack = sin(t * TAU * 600 + sin(t * TAU * 150) * 3.0) * crack_env * 0.35
+		# Supersonic snap (the distinctive "crack" of high-velocity round)
+		var snap_env = exp(-t * 40.0)
+		var snap = sin(t * TAU * 800 + sin(t * TAU * 200) * 4.0) * snap_env * 0.4
+		snap += sin(t * TAU * 1600) * snap_env * 0.2
 		
-		# Long reverb tail
-		var tail_env = exp(-t * 6.0) * 0.2
-		var tail = randf_range(-1.0, 1.0) * tail_env
-		# Simulate echo
-		if t > 0.15:
-			tail += sin((t - 0.15) * TAU * 55) * exp(-(t - 0.15) * 15.0) * 0.15
+		# Bolt action mechanical sound
+		var bolt = 0.0
+		if t > 0.05 and t < 0.12:
+			var bt = t - 0.05
+			bolt = sin(bt * TAU * 3000) * exp(-bt * 40.0) * 0.15
+			bolt += sin(bt * TAU * 6000) * exp(-bt * 60.0) * 0.08
 		
-		var sample = clamp(transient + body + crack + tail, -1.0, 1.0)
+		# Long echo / room reverb (sniper rifles echo for ages)
+		var echo1 = 0.0
+		if t > 0.12:
+			echo1 = sin((t - 0.12) * TAU * 50) * exp(-(t - 0.12) * 8.0) * 0.15
+		var echo2 = 0.0
+		if t > 0.25:
+			echo2 = sin((t - 0.25) * TAU * 45) * exp(-(t - 0.25) * 6.0) * 0.1
+		
+		# Noise tail
+		var tail = randf_range(-1.0, 1.0) * exp(-t * 5.0) * 0.12
+		
+		var sample = clamp(crack + body + snap + bolt + echo1 + echo2 + tail, -1.0, 1.0)
 		var val = int(sample * 32767)
 		data[i * 2] = val & 0xFF
 		data[i * 2 + 1] = (val >> 8) & 0xFF

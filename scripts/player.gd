@@ -439,12 +439,17 @@ func shoot():
 			"SABOT": $"/root/AudioManager".play("shoot_sniper")
 			_: $"/root/AudioManager".play("shoot")
 	
-	# Muzzle flash
+	# Muzzle flash — light + visible mesh
 	var mf = find_child("MuzzleFlash", true, false)
 	if mf:
-		mf.light_energy = 3.0
-		get_tree().create_timer(0.05).timeout.connect(func(): 
+		mf.light_energy = 4.0
+		mf.light_color = Color(1.0, 0.8, 0.3)
+		get_tree().create_timer(0.04).timeout.connect(func(): 
 			if is_instance_valid(mf): mf.light_energy = 0)
+	
+	# Screen shake on shoot (subtle)
+	camera.rotation.x -= randf_range(0.002, 0.005)
+	camera.rotation.y += randf_range(-0.002, 0.002)
 	
 	# Play shot animation
 	if weapon_model_builder and weapon_model_builder.has_method("play_anim"):
