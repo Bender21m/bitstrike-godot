@@ -300,16 +300,14 @@ func _physics_process(delta):
 	# === FPS ANIMATION STATE ===
 	_update_fps_animation(is_moving)
 	
-	# Footstep sounds
+	# Footstep sounds (use real ogg footsteps if available)
 	if is_moving and is_on_floor():
-		var step_speed = 0.45
-		if is_sprinting: step_speed = 0.3
-		elif is_crouching: step_speed = 0.65
+		var step_speed = 0.4
+		if is_crouching: step_speed = 0.6
 		footstep_timer -= delta
 		if footstep_timer <= 0:
 			footstep_timer = step_speed
-			if has_node("/root/AudioManager"):
-				$"/root/AudioManager".play("footstep")
+			_play_footstep()
 	else:
 		footstep_timer = 0.0
 	
@@ -589,6 +587,37 @@ func _knife_attack(is_stab: bool):
 		# Swing sound even on miss
 		if has_node("/root/AudioManager"):
 			$"/root/AudioManager".play("reload")  # Placeholder whoosh
+
+var footstep_sounds: Array = []
+var footstep_loaded: bool = false
+
+func _load_footstep_sounds():
+	if footstep_loaded:
+		return
+	footstep_loaded = true
+	for i in range(1, 5):
+		var path = "res://assets/sounds/footsteps/footstep_stone-%02d.ogg" % i
+		if ResourceLoader.exists(path):
+			footstep_sounds.append(load(path))
+
+func _play_footstep():
+	if not footstep_loaded:
+		_load_footstep_sounds()
+	
+	if footstep_sounds.size() > 0:
+		# Use real ogg footstep sounds
+		var sound = footstep_sounds[randi() % footstep_sounds.size()]
+		var player_sfx = AudioStreamPlayer.new()
+		player_sfx.stream = sound
+		player_sfx.volume_db = -8 if not is_crouching else -14
+		player_sfx.pitch_scale = randf_range(0.9, 1.1)
+		player_sfx.bus = "Master"
+		add_child(player_sfx)
+		player_sfx.play()
+		player_sfx.finished.connect(player_sfx.queue_free)
+	elif has_node("/root/AudioManager"):
+		# Fallback to procedural
+		$"/root/AudioManager".play("footstep")
 
 func _drop_current_weapon():
 	if has_node("/root/WeaponDrops"):
