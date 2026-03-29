@@ -177,9 +177,16 @@ func create_enemy(type: String, pos: Vector3) -> CharacterBody3D:
 	col.position.y = 0.9
 	enemy.add_child(col)
 	
-	# --- BODY ---
+	# --- TRY GLB MODEL FIRST ---
+	var use_model = false
+	if has_node("/root/EnemyModelLoader"):
+		use_model = $"/root/EnemyModelLoader".create_enemy_visual(enemy, type, data.color)
+	
+	# --- BODY (fallback if no GLB model) ---
 	var body_mesh = MeshInstance3D.new()
 	body_mesh.name = "Body"
+	if use_model:
+		body_mesh.visible = false  # Hide capsule, GLB model is used
 	var capsule_mesh = CapsuleMesh.new()
 	capsule_mesh.radius = 0.25
 	capsule_mesh.height = 1.2
@@ -194,6 +201,8 @@ func create_enemy(type: String, pos: Vector3) -> CharacterBody3D:
 	# --- HEAD ---
 	var head_mesh = MeshInstance3D.new()
 	head_mesh.name = "Head"
+	if use_model:
+		head_mesh.visible = false
 	var sphere = SphereMesh.new()
 	sphere.radius = 0.18
 	sphere.height = 0.36
