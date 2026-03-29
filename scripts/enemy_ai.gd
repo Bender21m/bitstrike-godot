@@ -618,10 +618,16 @@ func _start_death():
 	state_timer = 0.0
 	health = 0
 	
-	# Reward player
+	# Reward player — CS-style weapon-specific kill rewards
 	var p = get_tree().get_first_node_in_group("player")
 	if p:
-		p.sats += sats_reward
+		var kill_reward = sats_reward
+		if p.current_weapon < p.weapons.size():
+			match p.weapons[p.current_weapon].name:
+				"KNIFE": kill_reward = int(sats_reward * 3.0)
+				"BEAGLE": kill_reward = int(sats_reward * 1.5)
+				"SABOT": kill_reward = int(sats_reward * 0.6)
+		p.sats += kill_reward
 		p.kills += 1
 	
 	# Register kill streak
