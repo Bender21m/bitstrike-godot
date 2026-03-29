@@ -384,7 +384,12 @@ func shoot():
 		return
 	
 	var now = Time.get_ticks_msec() / 1000.0
-	if w.ammo <= 0 or now - last_shot_time < w.fire_rate:
+	if w.ammo <= 0:
+		# Auto-reload on empty mag
+		if w.reserve > 0:
+			reload_weapon()
+		return
+	if now - last_shot_time < w.fire_rate:
 		return
 	
 	last_shot_time = now
