@@ -5,8 +5,8 @@ extends Node
 
 var popup_canvas: CanvasLayer
 var last_popup_time: float = 0.0
-var popup_cooldown: float = 1.0  # Max one popup per second
-var max_visible: int = 2  # Max 2 popups on screen at once
+var popup_cooldown: float = 2.0  # Max one popup per 2 seconds
+var max_visible: int = 1  # Only 1 popup at a time
 
 func _ready():
 	popup_canvas = CanvasLayer.new()
@@ -31,25 +31,22 @@ func show_sats(amount: int, reason: String = ""):
 	if reason != "":
 		text += " %s" % reason
 	label.text = text
-	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_font_size_override("font_size", 16)
 	
-	# Color based on amount
+	# Always use subtle white/orange — not bright green
 	if amount >= 10000:
-		label.add_theme_color_override("font_color", Color(0.97, 0.58, 0.1))  # Big reward = orange
-	elif amount >= 3000:
-		label.add_theme_color_override("font_color", Color(0, 1, 0))  # Good = green
+		label.add_theme_color_override("font_color", Color(0.97, 0.58, 0.1, 0.8))
 	else:
-		label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))  # Normal = white
+		label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8, 0.7))
 	
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	
-	# Position near center-right
-	label.set_anchors_preset(Control.PRESET_CENTER)
-	var y_offset = randf_range(-20, 20)
-	label.offset_left = 50
-	label.offset_right = 250
-	label.offset_top = -30 + y_offset
-	label.offset_bottom = 0 + y_offset
+	# Position bottom-right near ammo (out of the way)
+	label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	label.offset_left = -220
+	label.offset_right = -20
+	label.offset_top = -100
+	label.offset_bottom = -80
 	
 	popup_canvas.add_child(label)
 	
