@@ -24,23 +24,39 @@ func _ready():
 	_build_bitcoin_pickups()
 
 func _create_materials():
-	# Concrete floor — dark industrial
+	# Load texture generator
+	var tex_gen_script = load("res://scripts/texture_generator.gd")
+	var tex_gen = null
+	if tex_gen_script:
+		tex_gen = Node.new()
+		tex_gen.set_script(tex_gen_script)
+	
+	# Concrete floor — dark industrial with tile pattern
 	mat_concrete_floor = StandardMaterial3D.new()
 	mat_concrete_floor.albedo_color = Color(0.22, 0.22, 0.24)
 	mat_concrete_floor.roughness = 0.95
 	mat_concrete_floor.metallic = 0.0
+	if tex_gen:
+		var floor_tex = tex_gen.create_floor_tile_texture(128, Color(0.24, 0.24, 0.26), Color(0.18, 0.18, 0.2))
+		tex_gen.apply_texture_to_material(mat_concrete_floor, floor_tex, 6.0)
 	
-	# Concrete wall
+	# Concrete wall with brick pattern
 	mat_concrete_wall = StandardMaterial3D.new()
 	mat_concrete_wall.albedo_color = Color(0.3, 0.3, 0.32)
 	mat_concrete_wall.roughness = 0.9
 	mat_concrete_wall.metallic = 0.05
+	if tex_gen:
+		var wall_tex = tex_gen.create_brick_texture(128, Color(0.25, 0.25, 0.27), Color(0.33, 0.31, 0.29))
+		tex_gen.apply_texture_to_material(mat_concrete_wall, wall_tex, 4.0)
 	
-	# Metal wall panels
+	# Metal wall panels with rivets
 	mat_metal_wall = StandardMaterial3D.new()
 	mat_metal_wall.albedo_color = Color(0.25, 0.28, 0.3)
 	mat_metal_wall.roughness = 0.6
 	mat_metal_wall.metallic = 0.4
+	if tex_gen:
+		var panel_tex = tex_gen.create_metal_panel_texture(128, Color(0.28, 0.3, 0.32))
+		tex_gen.apply_texture_to_material(mat_metal_wall, panel_tex, 3.0)
 	
 	# Dark metal
 	mat_metal_dark = StandardMaterial3D.new()
@@ -48,11 +64,14 @@ func _create_materials():
 	mat_metal_dark.roughness = 0.5
 	mat_metal_dark.metallic = 0.6
 	
-	# Metal grate (for catwalks)
+	# Metal grate (for catwalks) with grid pattern
 	mat_metal_grate = StandardMaterial3D.new()
 	mat_metal_grate.albedo_color = Color(0.2, 0.2, 0.22)
 	mat_metal_grate.roughness = 0.7
 	mat_metal_grate.metallic = 0.5
+	if tex_gen:
+		var grate_tex = tex_gen.create_grid_texture(64, Color(0.25, 0.25, 0.27), Color(0.15, 0.15, 0.17), 1, 8)
+		tex_gen.apply_texture_to_material(mat_metal_grate, grate_tex, 8.0)
 	
 	# Warning stripe (yellow/black)
 	mat_warning_stripe = StandardMaterial3D.new()
@@ -62,7 +81,7 @@ func _create_materials():
 	mat_warning_stripe.emission = Color(0.9, 0.7, 0.0)
 	mat_warning_stripe.emission_energy_multiplier = 0.1
 	
-	# Wood crate
+	# Wood crate with grain
 	mat_wood_crate = StandardMaterial3D.new()
 	mat_wood_crate.albedo_color = Color(0.45, 0.35, 0.2)
 	mat_wood_crate.roughness = 0.9
@@ -72,6 +91,10 @@ func _create_materials():
 	mat_barrel.albedo_color = Color(0.2, 0.3, 0.25)
 	mat_barrel.roughness = 0.6
 	mat_barrel.metallic = 0.4
+	
+	# Cleanup
+	if tex_gen:
+		tex_gen.queue_free()
 
 func _build_main_facility():
 	var parent = get_parent()
