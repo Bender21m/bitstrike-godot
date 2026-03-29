@@ -31,15 +31,15 @@ func _generate_sounds():
 	
 	# --- HIT MARKER — sharp metallic tick ---
 	audio_players["hit"].stream = _make_hit_marker()
-	audio_players["hit"].volume_db = -6
+	audio_players["hit"].volume_db = -12
 	
 	# --- KILL CONFIRM — satisfying double ding ---
 	audio_players["kill"].stream = _make_kill_confirm()
-	audio_players["kill"].volume_db = -4
+	audio_players["kill"].volume_db = -10
 	
 	# --- HEADSHOT — crunchy impact ---
 	audio_players["headshot"].stream = _make_headshot()
-	audio_players["headshot"].volume_db = -3
+	audio_players["headshot"].volume_db = -8
 	
 	# --- RELOAD — mechanical click-clack ---
 	audio_players["reload"].stream = _make_reload()

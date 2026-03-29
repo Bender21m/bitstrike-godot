@@ -40,14 +40,10 @@ func _ready():
 	canvas.add_child(streak_label)
 
 func register_kill():
-	kills_in_window += 1
+	# Kill streaks disabled — in single-player wave mode, every round
+	# triggers every streak which is just annoying spam.
+	# Will re-enable for multiplayer where streaks are meaningful.
 	total_kills_round += 1
-	kill_window_timer = kill_window_duration
-	
-	# Only announce if we haven't already announced this streak level
-	if streak_names.has(kills_in_window) and kills_in_window > last_announced:
-		last_announced = kills_in_window
-		_announce_streak(kills_in_window)
 
 func _announce_streak(count: int):
 	var data = streak_names[count]

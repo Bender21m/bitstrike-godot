@@ -187,8 +187,8 @@ func create_enemy(type: String, pos: Vector3) -> CharacterBody3D:
 	if use_model:
 		body_mesh.visible = false  # Hide capsule, GLB model is used
 	var capsule_mesh = CapsuleMesh.new()
-	capsule_mesh.radius = 0.25
-	capsule_mesh.height = 1.2
+	capsule_mesh.radius = 0.3
+	capsule_mesh.height = 1.4
 	body_mesh.mesh = capsule_mesh
 	var body_mat = StandardMaterial3D.new()
 	body_mat.albedo_color = data.color
