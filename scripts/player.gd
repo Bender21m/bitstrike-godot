@@ -503,6 +503,20 @@ func shoot():
 			var hit_obj = raycast.get_collider()
 			if hit_obj and not hit_obj.has_method("take_damage"):
 				_spawn_bullet_impact(hit_point, hit_normal)
+				# Impact sound (use real ogg if available)
+				var impact_path = "res://assets/sounds/impactMetal_heavy_001.ogg"
+				if ResourceLoader.exists(impact_path):
+					var impact_stream = load(impact_path)
+					if impact_stream:
+						var imp_player = AudioStreamPlayer3D.new()
+						imp_player.stream = impact_stream
+						imp_player.volume_db = -12
+						imp_player.pitch_scale = randf_range(0.8, 1.2)
+						imp_player.max_distance = 20.0
+						get_tree().root.add_child(imp_player)
+						imp_player.global_position = hit_point
+						imp_player.play()
+						imp_player.finished.connect(imp_player.queue_free)
 		
 		# Reset raycast
 		raycast.target_position = Vector3(0, 0, -100)
