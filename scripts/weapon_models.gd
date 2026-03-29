@@ -73,66 +73,41 @@ func _process(delta):
 func _animate_idle(delta):
 	if not current_model:
 		return
-	# Subtle breathing sway
+	# Gentle return to rest position + subtle breathing
 	var breath = sin(anim_time * 1.5) * 0.002
 	var sway = sin(anim_time * 0.8) * 0.001
-	current_model.position.y = lerp(current_model.position.y, breath, delta * 5)
-	current_model.position.x = lerp(current_model.position.x, sway, delta * 5)
-	current_model.rotation.z = lerp(current_model.rotation.z, sin(anim_time * 1.2) * 0.005, delta * 5)
-	
-	# Arms subtle movement
-	for arm in arm_nodes:
-		if is_instance_valid(arm):
-			arm.rotation.x = lerp(arm.rotation.x, sin(anim_time * 1.5) * 0.01, delta * 5)
+	current_model.position = current_model.position.lerp(Vector3(sway, breath, 0), delta * 8)
+	current_model.rotation = current_model.rotation.lerp(Vector3.ZERO, delta * 8)
 
 func _animate_shoot(delta):
 	if not current_model:
 		return
-	# Recoil kick back + up
-	var kick = anim_timer / 0.12  # 1.0 at start, 0.0 at end
-	current_model.position.z += kick * 0.02 * delta * 60
-	current_model.rotation.x -= kick * 0.03 * delta * 60
-	# Arms tense
-	for arm in arm_nodes:
-		if is_instance_valid(arm):
-			arm.rotation.x = -kick * 0.05
+	# Quick kick then return — use target position, NOT accumulation
+	var kick = clamp(anim_timer / 0.12, 0.0, 1.0)
+	current_model.position.z = kick * 0.015
+	current_model.rotation.x = -kick * 0.03
 
 func _animate_reload(delta):
 	if not current_model:
 		return
-	var t = 1.0 - (anim_timer / 2.0)  # 0→1 over reload
+	var t = 1.0 - clamp(anim_timer / 2.0, 0.0, 1.0)
 	
 	if t < 0.3:
-		# Tilt gun to side (looking at mag)
-		current_model.rotation.z = lerp(current_model.rotation.z, 0.15, delta * 8)
+		current_model.rotation.z = lerp(current_model.rotation.z, 0.12, delta * 8)
 		current_model.position.y = lerp(current_model.position.y, -0.02, delta * 8)
-	elif t < 0.5:
-		# Pull mag out (gun drops slightly)
-		current_model.position.y = lerp(current_model.position.y, -0.04, delta * 10)
-		# Left arm reaches down
-		if arm_nodes.size() > 0 and is_instance_valid(arm_nodes[0]):
-			arm_nodes[0].rotation.x = lerp(arm_nodes[0].rotation.x, -0.3, delta * 8)
-	elif t < 0.7:
-		# Insert new mag
-		current_model.position.y = lerp(current_model.position.y, -0.02, delta * 8)
-		if arm_nodes.size() > 0 and is_instance_valid(arm_nodes[0]):
-			arm_nodes[0].rotation.x = lerp(arm_nodes[0].rotation.x, 0.1, delta * 10)
+	elif t < 0.6:
+		current_model.position.y = lerp(current_model.position.y, -0.03, delta * 10)
 	else:
-		# Return to position, rack bolt
 		current_model.rotation.z = lerp(current_model.rotation.z, 0.0, delta * 6)
 		current_model.position.y = lerp(current_model.position.y, 0.0, delta * 6)
-		# Right arm pulls bolt
-		if arm_nodes.size() > 1 and is_instance_valid(arm_nodes[1]):
-			var bolt_pull = sin((t - 0.7) / 0.3 * PI)
-			arm_nodes[1].position.z = bolt_pull * 0.02
+		current_model.position.z = lerp(current_model.position.z, 0.0, delta * 6)
 
 func _animate_draw(delta):
 	if not current_model:
 		return
-	# Weapon rises from below
-	var t = 1.0 - (anim_timer / 0.3)
-	current_model.position.y = lerp(-0.15, 0.0, t)
-	current_model.rotation.x = lerp(0.2, 0.0, t)
+	var t = clamp(1.0 - (anim_timer / 0.3), 0.0, 1.0)
+	current_model.position.y = lerp(-0.1, 0.0, t)
+	current_model.rotation.x = lerp(0.15, 0.0, t)
 
 # ============================================================
 # AK-B7 — Based on AK-47 silhouette

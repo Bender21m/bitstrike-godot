@@ -177,10 +177,9 @@ func create_enemy(type: String, pos: Vector3) -> CharacterBody3D:
 	col.position.y = 0.9
 	enemy.add_child(col)
 	
-	# --- TRY GLB MODEL FIRST ---
+	# GLB mannequin disabled — T-poses and looks worse than capsules
+	# Will re-enable when we have properly animated character models
 	var use_model = false
-	if has_node("/root/EnemyModelLoader"):
-		use_model = $"/root/EnemyModelLoader".create_enemy_visual(enemy, type, data.color)
 	
 	# --- BODY (fallback if no GLB model) ---
 	var body_mesh = MeshInstance3D.new()
@@ -216,6 +215,8 @@ func create_enemy(type: String, pos: Vector3) -> CharacterBody3D:
 	
 	# --- EYES (red, emissive) ---
 	for side in [-1, 1]:
+		if use_model:
+			continue
 		var eye = MeshInstance3D.new()
 		var eye_sphere = SphereMesh.new()
 		eye_sphere.radius = 0.035
@@ -232,6 +233,8 @@ func create_enemy(type: String, pos: Vector3) -> CharacterBody3D:
 	
 	# --- ARMS (simple boxes for visual bulk) ---
 	for side in [-1, 1]:
+		if use_model:
+			continue
 		var arm = MeshInstance3D.new()
 		arm.name = "Arm_L" if side == -1 else "Arm_R"
 		var arm_mesh = BoxMesh.new()
@@ -246,6 +249,8 @@ func create_enemy(type: String, pos: Vector3) -> CharacterBody3D:
 	
 	# --- LEGS ---
 	for side in [-1, 1]:
+		if use_model:
+			continue
 		var leg = MeshInstance3D.new()
 		leg.name = "Leg_L" if side == -1 else "Leg_R"
 		var leg_mesh = BoxMesh.new()

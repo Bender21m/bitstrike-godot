@@ -5,7 +5,8 @@ extends Node
 
 var kills_in_window: int = 0
 var kill_window_timer: float = 0.0
-var kill_window_duration: float = 4.0  # Seconds between kills to count as streak
+var kill_window_duration: float = 3.0  # Seconds between kills to count
+var last_announced: int = 0  # Don't re-announce same level
 var total_kills_round: int = 0
 
 var streak_names = {
@@ -43,7 +44,9 @@ func register_kill():
 	total_kills_round += 1
 	kill_window_timer = kill_window_duration
 	
-	if streak_names.has(kills_in_window):
+	# Only announce if we haven't already announced this streak level
+	if streak_names.has(kills_in_window) and kills_in_window > last_announced:
+		last_announced = kills_in_window
 		_announce_streak(kills_in_window)
 
 func _announce_streak(count: int):
@@ -68,6 +71,7 @@ func _process(delta):
 		kill_window_timer -= delta
 		if kill_window_timer <= 0:
 			kills_in_window = 0
+			last_announced = 0
 	
 	# Animate streak label
 	if streak_label.visible:
