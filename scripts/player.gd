@@ -223,11 +223,16 @@ func _input(event):
 				mouse_captured = false
 
 func _physics_process(delta):
-	# Gravity + Jump
+	# Gravity + Jump + Landing
+	var was_airborne = not is_on_floor()
 	if not is_on_floor():
 		velocity.y -= GRAVITY * delta
 	elif Input.is_key_pressed(KEY_SPACE):
 		velocity.y = 4.5  # Jump force
+	
+	# Landing impact
+	if was_airborne and is_on_floor():
+		_play_footstep()  # Thud on landing
 	
 	# Determine speed — Shift = crouch (CS 1.6 style)
 	is_crouching = Input.is_key_pressed(KEY_SHIFT) or Input.is_key_pressed(KEY_CTRL)
@@ -251,12 +256,16 @@ func _physics_process(delta):
 	var dir = (transform.basis * Vector3(input_x, 0, input_z)).normalized()
 	var is_moving = dir.length() > 0.1
 	
+	# CS-style movement: acceleration on ground, less control in air
+	var accel = 8.0 if is_on_floor() else 2.0
+	var decel = 6.0 if is_on_floor() else 1.0
+	
 	if dir:
-		velocity.x = dir.x * spd
-		velocity.z = dir.z * spd
+		velocity.x = move_toward(velocity.x, dir.x * spd, accel * spd * delta)
+		velocity.z = move_toward(velocity.z, dir.z * spd, accel * spd * delta)
 	else:
-		velocity.x = move_toward(velocity.x, 0, spd * delta * 10)
-		velocity.z = move_toward(velocity.z, 0, spd * delta * 10)
+		velocity.x = move_toward(velocity.x, 0, decel * spd * delta)
+		velocity.z = move_toward(velocity.z, 0, decel * spd * delta)
 	
 	# === RECOIL RECOVERY (CS 1.6: slow recovery, punishes spraying) ===
 	# Vertical recoil recovery — slower than application, so spraying pulls up
