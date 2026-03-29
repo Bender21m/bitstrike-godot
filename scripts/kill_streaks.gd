@@ -48,18 +48,17 @@ func register_kill():
 
 func _announce_streak(count: int):
 	var data = streak_names[count]
+	# Only show on-screen for triple kill and above (double is too common)
+	if count < 3:
+		return
+	
 	streak_label.text = data.text
 	streak_label.add_theme_color_override("font_color", data.color)
-	streak_label.add_theme_font_size_override("font_size", 36 + count * 4)
+	streak_label.add_theme_font_size_override("font_size", 28)
 	streak_label.visible = true
 	
-	# Also add to kill feed
-	var player = get_tree().get_first_node_in_group("player")
-	if player and player.has_method("add_kill_feed"):
-		player.add_kill_feed("🔥 %s" % data.text)
-	
-	# Hide after delay
-	get_tree().create_timer(2.0).timeout.connect(func():
+	# Quick 1.5s display then gone
+	get_tree().create_timer(1.5).timeout.connect(func():
 		if is_instance_valid(streak_label):
 			streak_label.visible = false
 	)

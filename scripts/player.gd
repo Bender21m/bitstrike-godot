@@ -741,14 +741,20 @@ func die():
 
 func add_kill_feed(text: String):
 	var feed = get_tree().root.find_child("KillFeed", true, false)
-	if feed:
-		var label = Label.new()
-		label.text = text
-		label.add_theme_font_size_override("font_size", 18)
-		label.add_theme_color_override("font_color", Color(0.97, 0.58, 0.1))
-		feed.add_child(label)
-		get_tree().create_timer(5.0).timeout.connect(func(): 
-			if is_instance_valid(label): label.queue_free())
+	if not feed:
+		return
+	# Limit to 3 messages max
+	while feed.get_child_count() >= 3:
+		var oldest = feed.get_child(0)
+		if is_instance_valid(oldest):
+			oldest.queue_free()
+	var label = Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8, 0.8))
+	feed.add_child(label)
+	get_tree().create_timer(3.0).timeout.connect(func(): 
+		if is_instance_valid(label): label.queue_free())
 
 func update_hud():
 	var w = weapons[current_weapon]
