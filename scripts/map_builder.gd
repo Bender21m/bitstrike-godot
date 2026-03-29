@@ -277,21 +277,53 @@ func _build_crates_and_cover():
 	_add_static_box(parent, Vector3(17, 0.01, 14), Vector3(1.5, 0.02, 0.15), mat_warning_stripe)
 
 func _build_lighting():
-	# Additional atmospheric lights beyond what main.tscn provides
 	var parent = get_parent()
 	
-	# Bitcoin orange accent lights on server racks
-	var btc_positions = [
-		Vector3(4, 3.5, 8), Vector3(4, 3.5, 14), Vector3(4, 3.5, 20),
-		Vector3(20, 3.5, 8), Vector3(20, 3.5, 14), Vector3(20, 3.5, 20),
+	# Overhead fluorescent lights with visible fixtures
+	var overhead = [
+		Vector3(6, 4.5, 6), Vector3(12, 4.5, 6), Vector3(18, 4.5, 6),
+		Vector3(6, 4.5, 12), Vector3(12, 4.5, 12), Vector3(18, 4.5, 12),
+		Vector3(6, 4.5, 18), Vector3(12, 4.5, 18), Vector3(18, 4.5, 18),
 	]
-	for pos in btc_positions:
-		var light = OmniLight3D.new()
-		light.light_color = Color(0.97, 0.58, 0.1)
-		light.light_energy = 0.3
-		light.omni_range = 4.0
-		light.position = pos
-		parent.add_child(light)
+	for pos in overhead:
+		var ol = OmniLight3D.new()
+		ol.light_color = Color(0.85, 0.9, 1.0)
+		ol.light_energy = 0.6
+		ol.omni_range = 7.0
+		ol.shadow_enabled = true
+		ol.position = pos
+		parent.add_child(ol)
+		# Light fixture
+		var fx = MeshInstance3D.new()
+		var fm = BoxMesh.new()
+		fm.size = Vector3(0.6, 0.03, 0.15)
+		fx.mesh = fm
+		var fmat = StandardMaterial3D.new()
+		fmat.albedo_color = Color(0.9, 0.95, 1.0)
+		fmat.emission_enabled = true
+		fmat.emission = Color(0.9, 0.95, 1.0)
+		fmat.emission_energy_multiplier = 2.0
+		fx.set_surface_override_material(0, fmat)
+		fx.position = pos + Vector3(0, 0.3, 0)
+		parent.add_child(fx)
+	
+	# Bitcoin orange accent lights
+	for bpos in [Vector3(4, 2.5, 8), Vector3(4, 2.5, 14), Vector3(20, 2.5, 8), Vector3(20, 2.5, 14)]:
+		var bl = OmniLight3D.new()
+		bl.light_color = Color(0.97, 0.58, 0.1)
+		bl.light_energy = 0.4
+		bl.omni_range = 3.5
+		bl.position = bpos
+		parent.add_child(bl)
+	
+	# Red emergency lights near tunnels
+	for epos in [Vector3(7, 2, 14), Vector3(17, 2, 14)]:
+		var el = OmniLight3D.new()
+		el.light_color = Color(0.9, 0.15, 0.1)
+		el.light_energy = 0.5
+		el.omni_range = 4.0
+		el.position = epos
+		parent.add_child(el)
 
 func _build_bitcoin_pickups():
 	var parent = get_parent()
